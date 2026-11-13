@@ -1,5 +1,5 @@
 // ============================================
-// Lector de código de barras (corregido)
+// Lector de código de barras
 // ============================================
 class BarcodeReader {
     constructor(uploader) {
@@ -7,8 +7,8 @@ class BarcodeReader {
         this.buffer = '';
         this.timeout = null;
         this.isManualSearchActive = false;
-        this.lastProcessed = '';       // anti-duplicado
-        this.lastProcessedTime = 0;    // anti-duplicado con timestamp
+        this.lastProcessed = '';
+        this.lastProcessedTime = 0;
         this.init();
     }
 
@@ -22,7 +22,6 @@ class BarcodeReader {
 
             if (e.key === 'Enter') {
                 e.preventDefault();
-                // Procesar solo si hay contenido y no se procesó hace <500ms
                 if (this.buffer.length > 0) {
                     this.processBuffer();
                 }
@@ -30,7 +29,44 @@ class BarcodeReader {
                 this.buffer += e.key;
                 this.uploader.updateScanStatus('scanning', 'Escaneando...');
 
-                // Timeout de seguridad: si el lector no envía Enter, procesar tras 150ms
+                clearTimeout(this.timeout);
+                this.timeout = setTimeout(() => {
+                    if (this.buffer.length >= 3) {
+                        this.processBuffer();
+                    } else {
+                        this.buffer = '';
+                    }
+                }, 150);
+            }
+        });
+
+        // ⭐ CAPTURA GLOBAL: si el foco está en el input de cantidad (.qty-input)
+        // y el lector envía caracteres, los redirigimos al buffer del lector
+        // para que NO se escriban dentro del campo de existencia.
+        document.addEventListener('keydown', (e) => {
+            const active = document.activeElement;
+            if (!active || !active.classList || !active.classList.contains('qty-input')) return;
+
+            // Permitir teclas de control normales para edición manual
+            const allowedKeys = ['Enter', 'Escape', 'Tab', 'Backspace', 'Delete',
+                                 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                                 'Home', 'End'];
+            if (allowedKeys.includes(e.key)) return;
+            // Permitir combinaciones con Ctrl/Cmd (copiar, pegar, etc.)
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+            // Si es un carácter imprimible, redirigir al lector
+            if (e.key.length === 1) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Mover foco al input del lector para que siga capturando
+                const barcodeInput = document.getElementById('barcodeInput');
+                if (barcodeInput) barcodeInput.focus();
+
+                this.buffer += e.key;
+                this.uploader.updateScanStatus('scanning', 'Escaneando...');
+
                 clearTimeout(this.timeout);
                 this.timeout = setTimeout(() => {
                     if (this.buffer.length >= 3) {
@@ -62,7 +98,6 @@ class BarcodeReader {
 
         if (!code) return;
 
-        // Anti-duplicado: mismo código en <500ms = ignorar
         const now = Date.now();
         if (code === this.lastProcessed && (now - this.lastProcessedTime) < 500) {
             return;
@@ -73,7 +108,6 @@ class BarcodeReader {
         this.uploader.processBarcode(code);
     }
 
-    // Devuelve el foco al input oculto para que el lector siga funcionando
     refocus() {
         const input = document.getElementById('barcodeInput');
         if (input && !this.isManualSearchActive) {

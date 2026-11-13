@@ -107,7 +107,7 @@ class InventarioApp extends BaseUploader {
 
     refocusBarcode() {
         const active = document.activeElement;
-        if (active && (active.contentEditable === 'true' || active === this.manualSearchInput || active.tagName === 'INPUT')) return;
+        if (active && (active.contentEditable === 'true' || active === this.manualSearchInput)) return;
         if (this.barcodeReader) this.barcodeReader.refocus();
     }
 
@@ -488,6 +488,13 @@ class InventarioApp extends BaseUploader {
             this.updateScanStatus('error', 'Carga un archivo primero');
             return;
         }
+        
+        // ⭐ Si hay un resultado abierto, lo cerramos para que la nueva búsqueda lo reemplace
+        if (this.currentOpenResultRow) {
+            this.currentOpenResultRow.remove();
+            this.currentOpenResultRow = null;
+        }
+
         this.activeSearchTerm = code;
         this.manualSearchInput.value = code;
         this.searchSuggestions.classList.remove('active');
@@ -654,18 +661,38 @@ class InventarioApp extends BaseUploader {
                 input.setAttribute('pattern', '[0-9]*');
                 
                 input.onkeydown = (e) => {
+                    // ⭐ Si el input de cantidad tiene foco y llega un Enter, confirmamos.
+                    // Si llega un Escape, cancelamos.
+                    // Los caracteres normales se manejan en barcode.js para redirigir al lector.
                     if (e.key === 'Enter') {
                         e.preventDefault();
+                        e.stopPropagation();
                         this.confirmQuantityEdit(cell, input, rowIndex, colIdx);
                     } else if (e.key === 'Escape') {
                         e.preventDefault();
+                        e.stopPropagation();
                         this.cancelQuantityEdit(cell, txt);
                     }
                 };
 
-                input.onblur = () => {
-                    this.confirmQuantityEdit(cell, input, rowIndex, colIdx);
-                };
+                // ⭐ IMPORTANTE: Ya NO hay onblur automático, para que el lector no dispare
+                // confirmaciones accidentales. La confirmación solo ocurre con Enter o botón.
+
+                // ⭐ Abrir teclado virtual SOLO cuando el usuario hace clic/tap explícito
+                cell.addEventListener('mousedown', (e) => {
+                    if (e.target !== input) {
+                        e.preventDefault();
+                        input.focus();
+                        input.select();
+                    }
+                });
+                cell.addEventListener('touchstart', (e) => {
+                    if (e.target !== input) {
+                        e.preventDefault();
+                        input.focus();
+                        input.select();
+                    }
+                }, { passive: false });
 
                 cell.appendChild(input);
                 qtyInputReference = input;
@@ -700,7 +727,6 @@ class InventarioApp extends BaseUploader {
             btnCancel.style.fontSize = '0.85rem';
             btnCancel.style.fontWeight = 'bold';
             btnCancel.innerHTML = '✖ Cancelar';
-            // ⭐ IMPORTANTE: mousedown con preventDefault evita que el input pierda foco antes de tiempo
             btnCancel.onmousedown = (e) => e.preventDefault();
             btnCancel.onclick = (e) => {
                 e.stopPropagation();
@@ -717,7 +743,6 @@ class InventarioApp extends BaseUploader {
             btnConfirm.style.fontSize = '0.85rem';
             btnConfirm.style.fontWeight = 'bold';
             btnConfirm.innerHTML = '✔ Confirmar';
-            // ⭐ IMPORTANTE: mousedown con preventDefault evita que el input pierda foco antes de tiempo
             btnConfirm.onmousedown = (e) => e.preventDefault();
             btnConfirm.onclick = (e) => {
                 e.stopPropagation();
@@ -735,12 +760,10 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
-        if (qtyInputReference) {
-            setTimeout(() => {
-                qtyInputReference.focus();
-                qtyInputReference.select();
-            }, 100);
-        }
+        // ⭐ IMPORTANTE: Ya NO hacemos focus() automático al input de cantidad.
+        // El usuario debe hacer clic/tap sobre él para abrir el teclado.
+        // Así el lector de código de barras sigue escribiendo en #barcodeInput
+        // sin interferir con el campo de existencia.
     }
 
     // ⭐ CONFIRMAR: CIERRA EL RESULTADO PERO MANTIENE EL RESALTADO
@@ -761,7 +784,6 @@ class InventarioApp extends BaseUploader {
                     const mainCell = mainRow.querySelector(`td[data-col-index="${colIdx}"]`);
                     if (mainCell) mainCell.textContent = nuevoValor;
                     
-                    // Aseguramos que la fila principal quede resaltada
                     mainRow.classList.add('highlighted');
                     this.lastHighlightedRow = mainRow;
                 }
@@ -772,17 +794,17 @@ class InventarioApp extends BaseUploader {
             }
         }
 
-        // Cerrar el resultado de búsqueda (pero NO quitar el highlight de la fila principal)
         if (this.currentOpenResultRow) {
             this.currentOpenResultRow.remove();
             this.currentOpenResultRow = null;
         }
 
-        // ⭐ IMPORTANTE: Quitar foco del input para que el teclado virtual NO se abra.
-        // En lugar de refocusBarcode(), hacemos blur() para cerrar cualquier teclado virtual.
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
         }
+
+        // ⭐ Devolvemos el foco al lector para que siga escaneando
+        this.refocusBarcode();
     }
 
     // ⭐ CANCELAR: CIERRA EL RESULTADO Y QUITA EL RESALTADO
@@ -790,23 +812,22 @@ class InventarioApp extends BaseUploader {
         cell.innerHTML = originalValue;
         this.showNotification('Edición cancelada', 'warning');
 
-        // Cerrar el resultado
         if (this.currentOpenResultRow) {
             this.currentOpenResultRow.remove();
             this.currentOpenResultRow = null;
         }
 
-        // Quitar el resaltado de la fila principal
         if (this.lastHighlightedRow) {
             this.lastHighlightedRow.classList.remove('highlighted');
             this.lastHighlightedRow = null;
         }
 
-        // ⭐ IMPORTANTE: Quitar foco del input para que el teclado virtual NO se abra.
-        // En lugar de refocusBarcode(), hacemos blur() para cerrar cualquier teclado virtual.
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
         }
+
+        // ⭐ Devolvemos el foco al lector para que siga escaneando
+        this.refocusBarcode();
     }
 
     // ... (resto de funciones: registrarCambio, actualizarVistaCambios, mostrarDetallesProducto, deshacerCambio, exportar, etc.) ...
