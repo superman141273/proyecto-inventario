@@ -193,7 +193,6 @@ class InventarioApp extends BaseUploader {
         this.contentContainer.style.display = 'block';
         this.updateScanStatus('success', 'Listo para escanear');
         this.switchTab('viewInventario');
-        // ⭐ Ya NO se llama refocusBarcode() aquí para evitar que el teclado se abra al cargar.
     }
 
     renderTable() {
@@ -551,6 +550,7 @@ class InventarioApp extends BaseUploader {
     }
 
     highlightRow(dataRowIndex) {
+        // Si la fila ya está resaltada, no hacemos nada para no parpadear
         if (this.lastHighlightedRow && this.lastHighlightedRow.id === `fila-${dataRowIndex}`) {
             return;
         }
@@ -560,7 +560,8 @@ class InventarioApp extends BaseUploader {
         if (!row) return;
         row.classList.add('highlighted');
         this.lastHighlightedRow = row;
-        setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        // ⭐ Ya NO hacemos scrollIntoView aquí. El scroll se hace en displaySearchResult()
+        // cuando el bloque completo (fila + resultado) ya está en el DOM.
     }
 
     seleccionarFila(rowIndex, colIndex) {
@@ -697,7 +698,6 @@ class InventarioApp extends BaseUploader {
         table.appendChild(tbody);
         container.appendChild(table);
 
-        // ⭐ BOTONES CANCELAR / CONFIRMAR OPTIMIZADOS
         if (qtyCellReference) {
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'edit-actions-row';
@@ -730,6 +730,69 @@ class InventarioApp extends BaseUploader {
 
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
+
+        // ⭐ CENTRAR EL BLOQUE COMPLETO (fila + resultado) EN EL VIEWPORT
+        // Esperamos un tick para que el navegador calcule las dimensiones reales
+        setTimeout(() => {
+            this.scrollToResultBlock(targetRow, resultTr);
+        }, 50);
+    }
+
+    // ⭐ NUEVO MÉTODO: centra en pantalla el bloque formado por la fila resaltada
+    // y su resultado inline, para que los botones Confirmar/Cancelar queden visibles
+    // sin necesidad de desplazarse manualmente.
+    scrollToResultBlock(rowElement, resultElement) {
+        if (!rowElement || !resultElement) return;
+
+        // Contenedor con scroll (la tabla está dentro de .table-scroll)
+        const scrollContainer = rowElement.closest('.table-scroll');
+        if (!scrollContainer) {
+            // Fallback: si no encontramos el contenedor, hacemos scroll de ventana
+            const rect = rowElement.getBoundingClientRect();
+            window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'smooth' });
+            return;
+        }
+
+        // Coordenadas del bloque dentro del contenedor de scroll
+        const rowTop = rowElement.offsetTop;
+        const rowHeight = rowElement.offsetHeight;
+        const resultHeight = resultElement.offsetHeight;
+        const blockHeight = rowHeight + resultHeight;
+
+        const containerHeight = scrollContainer.clientHeight;
+        const containerScrollTop = scrollContainer.scrollTop;
+
+        // Altura visible del viewport que ocupa realmente el contenedor
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+
+        // Si el bloque es más alto que el contenedor visible, lo alineamos arriba con margen
+        // para que al menos se vea el inicio del resultado
+        if (blockHeight >= containerHeight) {
+            const targetScroll = rowTop - 20;
+            scrollContainer.scrollTo({ top: targetScroll, behavior: 'smooth' });
+            return;
+        }
+
+        // Centrar el bloque dentro del contenedor de scroll
+        const targetScroll = rowTop - (containerHeight - blockHeight) / 2;
+        scrollContainer.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+
+        // Además, si el contenedor de scroll está parcialmente fuera de pantalla,
+        // hacemos un scroll de ventana para que el contenedor completo se vea
+        const containerTop = containerRect.top;
+        const containerBottom = containerRect.bottom;
+        const margin = 20;
+
+        if (containerTop < margin) {
+            // Contenedor cortado arriba
+            const delta = containerTop - margin;
+            window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
+        } else if (containerBottom > viewportHeight - margin) {
+            // Contenedor cortado abajo
+            const delta = containerBottom - (viewportHeight - margin);
+            window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
+        }
     }
 
     confirmQuantityEdit(cell, input, rowIndex, colIdx) {
@@ -1042,7 +1105,6 @@ class InventarioApp extends BaseUploader {
                 this.updateScanStatus('success', 'Inventario recuperado');
                 this.showNotification('Inventario recuperado', 'success');
                 this.switchTab('viewInventario');
-                // ⭐ Ya NO se llama refocusBarcode() aquí para evitar que el teclado se abra al cargar.
             } else { localStorage.removeItem('inventario_actual'); }
         } catch (e) { console.warn('Error recuperando localStorage', e); }
     }
