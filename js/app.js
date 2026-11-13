@@ -629,7 +629,6 @@ class InventarioApp extends BaseUploader {
 
         let qtyInputReference = null;
         let qtyCellReference = null;
-        let qtyValue = '';
 
         headers.forEach((_, colIdx) => {
             const cell = document.createElement('td');
@@ -647,13 +646,13 @@ class InventarioApp extends BaseUploader {
             if (colIdx === qtyColIndex) {
                 cell.classList.add('editable-quantity');
                 cell.innerHTML = ''; 
-                qtyValue = txt;
                 
+                // ⭐ CAMBIO CLAVE: usar type="text" en vez de "number".
                 const input = document.createElement('input');
-                input.type = 'number';
-                // ⭐ No asignamos el valor AQUI. Lo haremos despues del scroll.
+                input.type = 'text';
+                input.value = txt;
                 input.className = 'qty-input';
-                input.setAttribute('inputmode', 'numeric');
+                input.setAttribute('inputmode', 'decimal'); 
                 input.setAttribute('pattern', '[0-9]*');
                 
                 input.onkeydown = (e) => {
@@ -730,19 +729,14 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
-        // ⭐ PRIMERO hacemos el scroll, y 200ms DESPUÉS (cuando el scroll ya terminó) 
-        // asignamos el valor al input y le damos el foco.
-        setTimeout(() => {
-            this.scrollToResultBlock(targetRow, resultTr);
-            
-            if (qtyInputReference) {
-                setTimeout(() => {
-                    qtyInputReference.value = qtyValue; // Asignamos el valor aquí
-                    qtyInputReference.focus();
-                    qtyInputReference.select();
-                }, 200);
-            }
-        }, 50);
+        // ⭐ Foco inmediato
+        if (qtyInputReference) {
+            setTimeout(() => {
+                this.scrollToResultBlock(targetRow, resultTr);
+                qtyInputReference.focus({ preventScroll: true });
+                qtyInputReference.select();
+            }, 50);
+        }
     }
 
     scrollToResultBlock(rowElement, resultElement) {

@@ -39,36 +39,10 @@ class BarcodeReader {
             }
         });
 
-        document.addEventListener('keydown', (e) => {
-            const active = document.activeElement;
-            if (!active || !active.classList || !active.classList.contains('qty-input')) return;
-
-            const allowedKeys = ['Enter', 'Escape', 'Tab', 'Backspace', 'Delete',
-                                 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-                                 'Home', 'End'];
-            if (allowedKeys.includes(e.key)) return;
-            if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-            if (e.key.length === 1) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const barcodeInput = document.getElementById('barcodeInput');
-                if (barcodeInput) barcodeInput.focus();
-
-                this.buffer += e.key;
-                this.uploader.updateScanStatus('scanning', 'Escaneando...');
-
-                clearTimeout(this.timeout);
-                this.timeout = setTimeout(() => {
-                    if (this.buffer.length >= 3) {
-                        this.processBuffer();
-                    } else {
-                        this.buffer = '';
-                    }
-                }, 150);
-            }
-        });
+        // ⭐ ELIMINADO EL LISTENER GLOBAL. 
+        // Si el foco está en el input de cantidad (.qty-input), 
+        // permitimos que el usuario escriba o que el lector escriba ahí.
+        // Si el usuario quiere escanear otro producto, primero debe presionar Enter o Confirmar.
 
         if (manualSearch) {
             manualSearch.addEventListener('focus', () => { this.isManualSearchActive = true; });
@@ -102,7 +76,7 @@ class BarcodeReader {
     refocus() {
         const input = document.getElementById('barcodeInput');
         if (input && !this.isManualSearchActive) {
-            input.focus();
+            input.focus({ preventScroll: true });
         }
     }
 }
