@@ -106,7 +106,7 @@ class InventarioApp extends BaseUploader {
 
     refocusBarcode() {
         const active = document.activeElement;
-        if (active && (active.contentEditable === 'true' || active === this.manualSearchInput)) return;
+        if (active && (active.contentEditable === 'true' || active === this.manualSearchInput || active.classList.contains('qty-input'))) return;
         if (this.barcodeReader) this.barcodeReader.refocus();
     }
 
@@ -669,14 +669,14 @@ class InventarioApp extends BaseUploader {
                 cell.addEventListener('mousedown', (e) => {
                     if (e.target !== input) {
                         e.preventDefault();
-                        input.focus({ preventScroll: true });
+                        input.focus();
                         input.select();
                     }
                 });
                 cell.addEventListener('touchstart', (e) => {
                     if (e.target !== input) {
                         e.preventDefault();
-                        input.focus({ preventScroll: true });
+                        input.focus();
                         input.select();
                     }
                 }, { passive: false });
@@ -728,19 +728,15 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
+        // ⭐ Realizamos el scroll y enfocamos sin usar preventScroll para evitar bugs
         setTimeout(() => {
             this.scrollToResultBlock(targetRow, resultTr);
-
+            
             if (qtyInputReference) {
                 setTimeout(() => {
-                    try {
-                        qtyInputReference.focus({ preventScroll: true });
-                        qtyInputReference.select();
-                    } catch (err) {
-                        qtyInputReference.focus();
-                        qtyInputReference.select();
-                    }
-                }, 400);
+                    qtyInputReference.focus();
+                    qtyInputReference.select();
+                }, 150);
             }
         }, 50);
     }
@@ -1019,7 +1015,6 @@ class InventarioApp extends BaseUploader {
         const name = this.generarNombreArchivo('xlsx');
         XLSX.writeFile(wb, name);
         this.showNotification(`Descargado: ${name}`, 'success');
-        // ⭐ Se ha eliminado la llamada a this.showDownloadInfo(name);
     }
 
     generarNombreArchivo(ext) {
@@ -1037,10 +1032,7 @@ class InventarioApp extends BaseUploader {
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         this.showNotification(`Descargado: ${fileName}`, 'success');
-        // ⭐ Se ha eliminado la llamada a this.showDownloadInfo(fileName);
     }
-
-    // ⭐ Se ha eliminado completamente el método showDownloadInfo()
 
     guardarEnLocalStorage() {
         try {
