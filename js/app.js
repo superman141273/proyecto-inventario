@@ -629,6 +629,7 @@ class InventarioApp extends BaseUploader {
 
         let qtyInputReference = null;
         let qtyCellReference = null;
+        let qtyValue = '';
 
         headers.forEach((_, colIdx) => {
             const cell = document.createElement('td');
@@ -646,10 +647,11 @@ class InventarioApp extends BaseUploader {
             if (colIdx === qtyColIndex) {
                 cell.classList.add('editable-quantity');
                 cell.innerHTML = ''; 
+                qtyValue = txt;
                 
                 const input = document.createElement('input');
                 input.type = 'number';
-                input.value = txt;
+                // ⭐ No asignamos el valor AQUI. Lo haremos despues del scroll.
                 input.className = 'qty-input';
                 input.setAttribute('inputmode', 'numeric');
                 input.setAttribute('pattern', '[0-9]*');
@@ -728,15 +730,17 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
-        // ⭐ Realizamos el scroll y enfocamos sin usar preventScroll para evitar bugs
+        // ⭐ PRIMERO hacemos el scroll, y 200ms DESPUÉS (cuando el scroll ya terminó) 
+        // asignamos el valor al input y le damos el foco.
         setTimeout(() => {
             this.scrollToResultBlock(targetRow, resultTr);
             
             if (qtyInputReference) {
                 setTimeout(() => {
+                    qtyInputReference.value = qtyValue; // Asignamos el valor aquí
                     qtyInputReference.focus();
                     qtyInputReference.select();
-                }, 150);
+                }, 200);
             }
         }, 50);
     }
