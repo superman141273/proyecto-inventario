@@ -16,7 +16,6 @@ class BarcodeReader {
         const input = document.getElementById('barcodeInput');
         const manualSearch = document.getElementById('manualSearch');
 
-        // Capturar teclas del lector USB (que se comporta como teclado)
         input.addEventListener('keydown', (e) => {
             if (this.isManualSearchActive) return;
 
@@ -40,27 +39,20 @@ class BarcodeReader {
             }
         });
 
-        // ⭐ CAPTURA GLOBAL: si el foco está en el input de cantidad (.qty-input)
-        // y el lector envía caracteres, los redirigimos al buffer del lector
-        // para que NO se escriban dentro del campo de existencia.
         document.addEventListener('keydown', (e) => {
             const active = document.activeElement;
             if (!active || !active.classList || !active.classList.contains('qty-input')) return;
 
-            // Permitir teclas de control normales para edición manual
             const allowedKeys = ['Enter', 'Escape', 'Tab', 'Backspace', 'Delete',
                                  'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
                                  'Home', 'End'];
             if (allowedKeys.includes(e.key)) return;
-            // Permitir combinaciones con Ctrl/Cmd (copiar, pegar, etc.)
             if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-            // Si es un carácter imprimible, redirigir al lector
             if (e.key.length === 1) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // Mover foco al input del lector para que siga capturando
                 const barcodeInput = document.getElementById('barcodeInput');
                 if (barcodeInput) barcodeInput.focus();
 
@@ -78,7 +70,6 @@ class BarcodeReader {
             }
         });
 
-        // Búsqueda manual
         if (manualSearch) {
             manualSearch.addEventListener('focus', () => { this.isManualSearchActive = true; });
             manualSearch.addEventListener('blur', () => { this.isManualSearchActive = false; });

@@ -290,7 +290,6 @@ td.editable-quantity:hover {
     background: #ffffff;
     outline: none;
     box-sizing: border-box;
-    /* Eliminar las flechitas de incremento nativas para que se vea más limpio */
     -moz-appearance: textfield;
     appearance: textfield;
 }
@@ -299,6 +298,58 @@ td.editable-quantity:hover {
 .qty-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+/* ============================================
+   ⭐ BOTONES CANCELAR / CONFIRMAR OPTIMIZADOS
+   ============================================ */
+.edit-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.edit-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    user-select: none;
+    line-height: 1;
+}
+
+.edit-action-btn:active {
+    transform: scale(0.97);
+}
+
+.edit-action-cancel {
+    background: #ffffff;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.edit-action-cancel:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+}
+
+.edit-action-confirm {
+    background: #16a34a;
+    color: #ffffff;
+    border-color: #15803d;
+}
+
+.edit-action-confirm:hover {
+    background: #15803d;
+    border-color: #14532d;
 }
 
 /* ============================================
@@ -319,8 +370,6 @@ td.editable-quantity:hover {
 
 #scrollTopButton { background: #e7e5e4; color: #44403c; border-color: #a8a29e; }
 #scrollTopButton:hover { background: #d6d3d1; }
-#clearSearchButton { background: #78716c; color: white; border-color: #57534e; }
-#clearSearchButton:hover { background: #57534e; }
 #resetButton { background: #1c1917; color: white; border-color: #000000; }
 #resetButton:hover { background: #000000; }
 
@@ -355,8 +404,6 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
 .btn-eliminar-cambio:hover { background: #fef2f2; border-color: #dc2626; }
 
 .match-highlight { background: #fef08a !important; font-weight: 600; color: #854d0e; border-radius: 2px; padding: 2px 4px; }
-.edit-actions button { font-family: sans-serif; line-height: 1; }
-.edit-actions button:hover { opacity: 0.8; }
 
 /* Scrollbars */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -402,6 +449,8 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
     .table-container { max-height: 50vh; }
     #downloadInfoPanel { bottom: 10px; right: 10px; left: 10px; width: auto; }
     .detalles-grid { grid-template-columns: 1fr; }
+    .edit-actions-row { gap: 6px; }
+    .edit-action-btn { padding: 8px 14px; font-size: 0.8rem; }
 }
 
 @media (max-width: 480px) {

@@ -89,7 +89,6 @@ class InventarioApp extends BaseUploader {
         this.exportButton.addEventListener('click', () => this.exportToCSV());
         this.exportXLSXButton.addEventListener('click', () => this.exportToXLSX());
         document.getElementById('scrollTopButton').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        document.getElementById('clearSearchButton').addEventListener('click', () => this.clearSearch());
         document.getElementById('resetButton').addEventListener('click', () => this.resetApp());
 
         document.getElementById('tabInventario').addEventListener('click', () => this.switchTab('viewInventario'));
@@ -194,7 +193,7 @@ class InventarioApp extends BaseUploader {
         this.contentContainer.style.display = 'block';
         this.updateScanStatus('success', 'Listo para escanear');
         this.switchTab('viewInventario');
-        this.refocusBarcode();
+        // ⭐ Ya NO se llama refocusBarcode() aquí para evitar que el teclado se abra al cargar.
     }
 
     renderTable() {
@@ -489,7 +488,6 @@ class InventarioApp extends BaseUploader {
             return;
         }
         
-        // ⭐ Si hay un resultado abierto, lo cerramos para que la nueva búsqueda lo reemplace
         if (this.currentOpenResultRow) {
             this.currentOpenResultRow.remove();
             this.currentOpenResultRow = null;
@@ -515,7 +513,6 @@ class InventarioApp extends BaseUploader {
         const headers = this.currentHeaders[this.currentSheet];
         if (!data || !headers) return false;
 
-        // Quitar resaltado anterior solo si no es la misma fila
         if (this.lastHighlightedRow) {
             this.lastHighlightedRow.classList.remove('highlighted');
             this.lastHighlightedRow = null;
@@ -554,7 +551,6 @@ class InventarioApp extends BaseUploader {
     }
 
     highlightRow(dataRowIndex) {
-        // Si la fila ya está resaltada, no hacemos nada para no parpadear
         if (this.lastHighlightedRow && this.lastHighlightedRow.id === `fila-${dataRowIndex}`) {
             return;
         }
@@ -661,9 +657,6 @@ class InventarioApp extends BaseUploader {
                 input.setAttribute('pattern', '[0-9]*');
                 
                 input.onkeydown = (e) => {
-                    // ⭐ Si el input de cantidad tiene foco y llega un Enter, confirmamos.
-                    // Si llega un Escape, cancelamos.
-                    // Los caracteres normales se manejan en barcode.js para redirigir al lector.
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         e.stopPropagation();
@@ -675,10 +668,6 @@ class InventarioApp extends BaseUploader {
                     }
                 };
 
-                // ⭐ IMPORTANTE: Ya NO hay onblur automático, para que el lector no dispare
-                // confirmaciones accidentales. La confirmación solo ocurre con Enter o botón.
-
-                // ⭐ Abrir teclado virtual SOLO cuando el usuario hace clic/tap explícito
                 cell.addEventListener('mousedown', (e) => {
                     if (e.target !== input) {
                         e.preventDefault();
@@ -708,25 +697,14 @@ class InventarioApp extends BaseUploader {
         table.appendChild(tbody);
         container.appendChild(table);
 
-        // BOTONES DE PALOMITA Y EQUIS
+        // ⭐ BOTONES CANCELAR / CONFIRMAR OPTIMIZADOS
         if (qtyCellReference) {
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'edit-actions-row';
-            actionsDiv.style.display = 'flex';
-            actionsDiv.style.justifyContent = 'flex-end';
-            actionsDiv.style.gap = '10px';
-            actionsDiv.style.marginTop = '10px';
 
             const btnCancel = document.createElement('button');
-            btnCancel.className = 'control-btn';
-            btnCancel.style.background = '#dc2626';
-            btnCancel.style.color = 'white';
-            btnCancel.style.border = '2px solid #b91c1c';
-            btnCancel.style.padding = '8px 20px';
-            btnCancel.style.borderRadius = '4px';
-            btnCancel.style.fontSize = '0.85rem';
-            btnCancel.style.fontWeight = 'bold';
-            btnCancel.innerHTML = '✖ Cancelar';
+            btnCancel.className = 'edit-action-btn edit-action-cancel';
+            btnCancel.innerHTML = '✕ Cancelar';
             btnCancel.onmousedown = (e) => e.preventDefault();
             btnCancel.onclick = (e) => {
                 e.stopPropagation();
@@ -734,15 +712,8 @@ class InventarioApp extends BaseUploader {
             };
 
             const btnConfirm = document.createElement('button');
-            btnConfirm.className = 'control-btn';
-            btnConfirm.style.background = '#16a34a';
-            btnConfirm.style.color = 'white';
-            btnConfirm.style.border = '2px solid #15803d';
-            btnConfirm.style.padding = '8px 20px';
-            btnConfirm.style.borderRadius = '4px';
-            btnConfirm.style.fontSize = '0.85rem';
-            btnConfirm.style.fontWeight = 'bold';
-            btnConfirm.innerHTML = '✔ Confirmar';
+            btnConfirm.className = 'edit-action-btn edit-action-confirm';
+            btnConfirm.innerHTML = '✓ Confirmar';
             btnConfirm.onmousedown = (e) => e.preventDefault();
             btnConfirm.onclick = (e) => {
                 e.stopPropagation();
@@ -759,14 +730,8 @@ class InventarioApp extends BaseUploader {
 
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
-
-        // ⭐ IMPORTANTE: Ya NO hacemos focus() automático al input de cantidad.
-        // El usuario debe hacer clic/tap sobre él para abrir el teclado.
-        // Así el lector de código de barras sigue escribiendo en #barcodeInput
-        // sin interferir con el campo de existencia.
     }
 
-    // ⭐ CONFIRMAR: CIERRA EL RESULTADO PERO MANTIENE EL RESALTADO
     confirmQuantityEdit(cell, input, rowIndex, colIdx) {
         const nuevoValor = input.value.trim();
         const data = this.currentData[this.currentSheet];
@@ -803,11 +768,9 @@ class InventarioApp extends BaseUploader {
             document.activeElement.blur();
         }
 
-        // ⭐ Devolvemos el foco al lector para que siga escaneando
         this.refocusBarcode();
     }
 
-    // ⭐ CANCELAR: CIERRA EL RESULTADO Y QUITA EL RESALTADO
     cancelQuantityEdit(cell, originalValue) {
         cell.innerHTML = originalValue;
         this.showNotification('Edición cancelada', 'warning');
@@ -826,11 +789,23 @@ class InventarioApp extends BaseUploader {
             document.activeElement.blur();
         }
 
-        // ⭐ Devolvemos el foco al lector para que siga escaneando
         this.refocusBarcode();
     }
 
-    // ... (resto de funciones: registrarCambio, actualizarVistaCambios, mostrarDetallesProducto, deshacerCambio, exportar, etc.) ...
+    clearSearch() {
+        this.activeSearchTerm = '';
+        this.manualSearchInput.value = '';
+        this.searchSuggestions.classList.remove('active');
+        if (this.lastHighlightedRow) {
+            this.lastHighlightedRow.classList.remove('highlighted');
+            this.lastHighlightedRow = null;
+        }
+        if (this.currentOpenResultRow) {
+            this.currentOpenResultRow.remove();
+            this.currentOpenResultRow = null;
+        }
+    }
+
     registrarCambio(rowIndex, colIndex, valorAnterior, valorNuevo) {
         const headers = this.currentHeaders[this.currentSheet];
         const nombreColumna = headers[colIndex] || `Columna ${colIndex + 1}`;
@@ -1067,7 +1042,7 @@ class InventarioApp extends BaseUploader {
                 this.updateScanStatus('success', 'Inventario recuperado');
                 this.showNotification('Inventario recuperado', 'success');
                 this.switchTab('viewInventario');
-                this.refocusBarcode();
+                // ⭐ Ya NO se llama refocusBarcode() aquí para evitar que el teclado se abra al cargar.
             } else { localStorage.removeItem('inventario_actual'); }
         } catch (e) { console.warn('Error recuperando localStorage', e); }
     }
