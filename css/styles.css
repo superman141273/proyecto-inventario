@@ -149,17 +149,56 @@ main { padding: 2rem; background: #ffffff; }
 /* ============================================
    TABLAS Y BOTÓN DE FILTRO (Cabeceras)
    ============================================ */
-.table-container { overflow-x: auto; border: 2px solid #a8a29e; border-radius: 4px; background: white; max-height: 60vh; }
-.table-scroll { max-height: 60vh; overflow-y: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 100%; }
+/* ⭐ El contenedor exterior ya NO scrollea; solo decoración.
+   El scroll (vertical y horizontal) lo maneja .table-scroll. */
+.table-container { 
+    overflow: visible; 
+    border: 2px solid #a8a29e; 
+    border-radius: 4px; 
+    background: white; 
+}
+
+/* ⭐ Único contenedor con scroll: vertical y horizontal */
+.table-scroll { 
+    max-height: 60vh; 
+    overflow: auto; 
+    border-radius: 4px;
+}
+
+/* ⭐ border-collapse: separate es necesario para que position: sticky
+   funcione en el <thead> (bug conocido de Chrome/Edge con collapse). */
+table { 
+    width: 100%; 
+    border-collapse: separate; 
+    border-spacing: 0;
+    font-size: 0.85rem; 
+    min-width: 100%; 
+}
+
 th {
-    background: #1c1917; color: white; padding: 10px 12px; text-align: left; font-weight: 600;
-    border-bottom: 3px solid #6b21a8; border-right: 1px solid #44403c; position: sticky; top: 0; z-index: 10; white-space: nowrap;
+    background: #1c1917; 
+    color: white; 
+    padding: 10px 12px; 
+    text-align: left; 
+    font-weight: 600;
+    border-bottom: 3px solid #6b21a8; 
+    border-right: 1px solid #44403c; 
+    position: sticky; 
+    top: 0; 
+    z-index: 10; 
+    white-space: nowrap;
 }
 th:last-child { border-right: none; }
+
 td {
-    padding: 10px 12px; border-bottom: 1px solid #d6d3d1; border-right: 1px solid #e7e5e4;
-    color: #44403c; word-wrap: break-word; max-width: 300px; min-width: 100px; user-select: none;
+    padding: 10px 12px; 
+    border-bottom: 1px solid #d6d3d1; 
+    border-right: 1px solid #e7e5e4;
+    color: #44403c; 
+    word-wrap: break-word; 
+    max-width: 300px; 
+    min-width: 100px; 
+    user-select: none;
 }
 td:last-child { border-right: none; }
 
@@ -229,7 +268,8 @@ td:last-child { border-right: none; }
 
 .inline-result-container .result-table {
     width: 100%; 
-    border-collapse: collapse; 
+    border-collapse: separate; 
+    border-spacing: 0;
     font-size: 0.85rem; 
     background: white; 
     border: 2px solid #a8a29e; 
@@ -446,7 +486,8 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
     .search-row { flex-direction: column; align-items: stretch; }
     .search-input-container { width: 100%; }
     .search-row input, .search-row button { width: 100%; font-size: 16px; padding: 10px; }
-    .table-container { max-height: 50vh; }
+    /* ⭐ El scroll vertical ahora lo maneja .table-scroll, no .table-container */
+    .table-scroll { max-height: 50vh; }
     #downloadInfoPanel { bottom: 10px; right: 10px; left: 10px; width: auto; }
     .detalles-grid { grid-template-columns: 1fr; }
     .edit-actions-row { gap: 6px; }
