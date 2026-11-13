@@ -550,7 +550,6 @@ class InventarioApp extends BaseUploader {
     }
 
     highlightRow(dataRowIndex) {
-        // Si la fila ya está resaltada, no hacemos nada para no parpadear
         if (this.lastHighlightedRow && this.lastHighlightedRow.id === `fila-${dataRowIndex}`) {
             return;
         }
@@ -560,8 +559,6 @@ class InventarioApp extends BaseUploader {
         if (!row) return;
         row.classList.add('highlighted');
         this.lastHighlightedRow = row;
-        // ⭐ Ya NO hacemos scrollIntoView aquí. El scroll se hace en displaySearchResult()
-        // cuando el bloque completo (fila + resultado) ya está en el DOM.
     }
 
     seleccionarFila(rowIndex, colIndex) {
@@ -672,14 +669,14 @@ class InventarioApp extends BaseUploader {
                 cell.addEventListener('mousedown', (e) => {
                     if (e.target !== input) {
                         e.preventDefault();
-                        input.focus();
+                        input.focus({ preventScroll: true });
                         input.select();
                     }
                 });
                 cell.addEventListener('touchstart', (e) => {
                     if (e.target !== input) {
                         e.preventDefault();
-                        input.focus();
+                        input.focus({ preventScroll: true });
                         input.select();
                     }
                 }, { passive: false });
@@ -731,65 +728,60 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
-        // ⭐ CENTRAR EL BLOQUE COMPLETO (fila + resultado) EN EL VIEWPORT
-        // Esperamos un tick para que el navegador calcule las dimensiones reales
         setTimeout(() => {
             this.scrollToResultBlock(targetRow, resultTr);
+
+            if (qtyInputReference) {
+                setTimeout(() => {
+                    try {
+                        qtyInputReference.focus({ preventScroll: true });
+                        qtyInputReference.select();
+                    } catch (err) {
+                        qtyInputReference.focus();
+                        qtyInputReference.select();
+                    }
+                }, 400);
+            }
         }, 50);
     }
 
-    // ⭐ NUEVO MÉTODO: centra en pantalla el bloque formado por la fila resaltada
-    // y su resultado inline, para que los botones Confirmar/Cancelar queden visibles
-    // sin necesidad de desplazarse manualmente.
     scrollToResultBlock(rowElement, resultElement) {
         if (!rowElement || !resultElement) return;
 
-        // Contenedor con scroll (la tabla está dentro de .table-scroll)
         const scrollContainer = rowElement.closest('.table-scroll');
         if (!scrollContainer) {
-            // Fallback: si no encontramos el contenedor, hacemos scroll de ventana
             const rect = rowElement.getBoundingClientRect();
             window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'smooth' });
             return;
         }
 
-        // Coordenadas del bloque dentro del contenedor de scroll
         const rowTop = rowElement.offsetTop;
         const rowHeight = rowElement.offsetHeight;
         const resultHeight = resultElement.offsetHeight;
         const blockHeight = rowHeight + resultHeight;
 
         const containerHeight = scrollContainer.clientHeight;
-        const containerScrollTop = scrollContainer.scrollTop;
 
-        // Altura visible del viewport que ocupa realmente el contenedor
         const containerRect = scrollContainer.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
 
-        // Si el bloque es más alto que el contenedor visible, lo alineamos arriba con margen
-        // para que al menos se vea el inicio del resultado
         if (blockHeight >= containerHeight) {
             const targetScroll = rowTop - 20;
             scrollContainer.scrollTo({ top: targetScroll, behavior: 'smooth' });
             return;
         }
 
-        // Centrar el bloque dentro del contenedor de scroll
         const targetScroll = rowTop - (containerHeight - blockHeight) / 2;
         scrollContainer.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
 
-        // Además, si el contenedor de scroll está parcialmente fuera de pantalla,
-        // hacemos un scroll de ventana para que el contenedor completo se vea
         const containerTop = containerRect.top;
         const containerBottom = containerRect.bottom;
         const margin = 20;
 
         if (containerTop < margin) {
-            // Contenedor cortado arriba
             const delta = containerTop - margin;
             window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
         } else if (containerBottom > viewportHeight - margin) {
-            // Contenedor cortado abajo
             const delta = containerBottom - (viewportHeight - margin);
             window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
         }
@@ -1027,7 +1019,7 @@ class InventarioApp extends BaseUploader {
         const name = this.generarNombreArchivo('xlsx');
         XLSX.writeFile(wb, name);
         this.showNotification(`Descargado: ${name}`, 'success');
-        this.showDownloadInfo(name);
+        // ⭐ Se ha eliminado la llamada a this.showDownloadInfo(name);
     }
 
     generarNombreArchivo(ext) {
@@ -1045,33 +1037,10 @@ class InventarioApp extends BaseUploader {
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         this.showNotification(`Descargado: ${fileName}`, 'success');
-        this.showDownloadInfo(fileName);
+        // ⭐ Se ha eliminado la llamada a this.showDownloadInfo(fileName);
     }
 
-    showDownloadInfo(fileName) {
-        const prev = document.getElementById('downloadInfoPanel');
-        if (prev) prev.remove();
-        const panel = document.createElement('div');
-        panel.id = 'downloadInfoPanel';
-        panel.innerHTML = `
-            <div class="download-panel-content">
-                <div class="download-panel-header">
-                    <h3>Archivo descargado</h3>
-                    <button class="close-btn" onclick="document.getElementById('downloadInfoPanel').remove()">&times;</button>
-                </div>
-                <p><strong>Archivo:</strong> ${fileName}</p>
-                <p><strong>Ubicación:</strong> carpeta <strong>Descargas</strong></p>
-                <details style="margin-top:1rem;">
-                    <summary style="cursor:pointer;color:#4facfe;font-weight:bold;">¿Quieres elegir la carpeta cada vez?</summary>
-                    <div style="margin-top:0.75rem;font-size:0.9rem;line-height:1.6;">
-                        <p><strong>Chrome / Edge:</strong> Menú (⋮) → Configuración → Descargas → Activar "Preguntar dónde guardar cada archivo"</p>
-                        <p><strong>Firefox:</strong> Menú (☰) → Ajustes → General → Descargas → Activar "Preguntar siempre dónde guardar los archivos"</p>
-                    </div>
-                </details>
-            </div>`;
-        document.body.appendChild(panel);
-        setTimeout(() => { if (panel.parentNode) panel.remove(); }, 15000);
-    }
+    // ⭐ Se ha eliminado completamente el método showDownloadInfo()
 
     guardarEnLocalStorage() {
         try {
