@@ -1,0 +1,413 @@
+/* ============================================
+   ESTILOS GENERALES (Balance Oscuro/Claro con Grises)
+   ============================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #33302e; 
+    color: #1f1f1f; 
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); 
+    border: 2px solid #1c1917; 
+    overflow: hidden;
+}
+
+header {
+    background: #1c1917; 
+    color: #ffffff;
+    text-align: left;
+    padding: 1.5rem 2rem;
+    border-bottom: 4px solid #6b21a8; 
+}
+header h1 { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.25rem; color: #ffffff; }
+header p { font-size: 0.95rem; color: #a8a29e; }
+
+main { padding: 2rem; background: #ffffff; }
+
+/* ============================================
+   ZONA DE CARGA
+   ============================================ */
+.upload-container { text-align: center; margin-bottom: 2rem; }
+.upload-area {
+    border: 2px dashed #78716c; border-radius: 6px; padding: 2rem; margin: 1rem 0 2rem 0;
+    cursor: pointer; transition: all 0.2s ease; background: #f4f4f2; 
+}
+.upload-area:hover { border-color: #6b21a8; background: #f3e8ff; }
+.upload-area.dragover { border-color: #4c1d95; background: #e9d5ff; }
+.upload-icon { margin-bottom: 0.5rem; color: #6b21a8; }
+
+.file-btn {
+    display: inline-block; background: #6b21a8; color: white; padding: 8px 20px;
+    border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+    transition: background 0.2s; margin: 0.5rem 0; border: 1px solid #581c87;
+}
+.file-btn:hover { background: #581c87; }
+
+.file-info {
+    background: #f0eeec; padding: 1rem; border-radius: 6px; margin: 1rem 0;
+    border: 2px solid #d6d3d1; color: #44403c; font-size: 0.9rem;
+}
+
+.supported-formats { margin: 1.5rem 0; }
+.formats-list { display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+.format-badge { background: #e7e5e4; color: #44403c; border: 1px solid #a8a29e; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem; }
+
+/* ============================================
+   ESTADO DEL LECTOR
+   ============================================ */
+.barcode-info {
+    background: #f0eeec; padding: 1.25rem; border-radius: 6px; margin: 1rem 0;
+    border: 2px solid #d6d3d1; border-left: 5px solid #1c1917; text-align: left;
+}
+.barcode-info h4 { color: #1c1917; font-size: 0.95rem; margin-bottom: 0.25rem; }
+.barcode-info p { font-size: 0.85rem; color: #57534e; margin-bottom: 0.5rem; }
+.scan-status {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #ffffff;
+    border-radius: 4px; font-size: 0.85rem; font-weight: 600; border: 2px solid #a8a29e;
+}
+.status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; }
+.status-success { background: #16a34a !important; }
+.status-scanning { background: #ca8a04 !important; }
+.status-error { background: #dc2626 !important; }
+
+/* ============================================
+   BOTONES DE HOJAS (PESTAÑAS DE EXCEL)
+   ============================================ */
+.sheets-container { background: #f0eeec; border-radius: 6px; padding: 1rem; margin: 1.5rem 0; border: 2px solid #d6d3d1; }
+.sheets-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.sheet-btn {
+    background: #ffffff; color: #57534e; border: 1px solid #a8a29e; padding: 6px 12px;
+    border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;
+}
+.sheet-btn:hover { background: #e7e5e4; color: #1c1917; }
+.sheet-btn.active { background: #1c1917; color: white; border-color: #1c1917; }
+
+/* ============================================
+   SISTEMA DE PESTAÑAS PRINCIPALES (TABS)
+   ============================================ */
+.tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #a8a29e; }
+.tab-btn {
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    font-size: 0.95rem; font-weight: 600; color: #78716c; cursor: pointer;
+    padding: 10px 20px; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
+}
+.tab-btn:hover { color: #1c1917; }
+.tab-btn.active { color: #6b21a8; border-bottom-color: #6b21a8; }
+.badge { background: #1c1917; color: white; font-size: 0.75rem; padding: 1px 6px; border-radius: 10px; font-weight: bold; }
+
+/* ============================================
+   CONTENEDOR PRINCIPAL DE LAS TABLAS
+   ============================================ */
+.content-container { background: #ffffff; border-radius: 6px; padding: 1.5rem; margin-top: 1.5rem; border: 2px solid #d6d3d1; }
+.table-header { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #d6d3d1; }
+.table-header h3 { color: #1c1917; font-size: 1.1rem; margin-bottom: 0.5rem; }
+.table-info { color: #78716c; font-size: 0.85rem; margin-bottom: 0.5rem; }
+
+/* ============================================
+   BÚSQUEDA MANUAL Y SUGERENCIAS
+   ============================================ */
+.search-controls { display: flex; flex-direction: column; gap: 8px; margin-top: 1rem; }
+.search-row { display: flex; gap: 8px; align-items: flex-start; }
+
+.search-input-container { position: relative; flex: 1; }
+.search-input-container input {
+    width: 100%; padding: 8px 12px; border: 2px solid #d6d3d1; border-radius: 4px;
+    font-size: 0.9rem; outline: none; transition: border-color 0.2s; background: #fafaf9;
+}
+.search-input-container input:focus { border-color: #6b21a8; background: #ffffff; box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.15); }
+
+.search-suggestions {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: #ffffff; border: 2px solid #a8a29e; border-top: none;
+    border-radius: 0 0 4px 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 1000; max-height: 250px; overflow-y: auto; display: none;
+}
+.search-suggestions.active { display: block; }
+.suggestion-item {
+    padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f0eeec;
+    display: flex; flex-direction: column; gap: 2px;
+}
+.suggestion-item:hover { background: #f3e8ff; }
+.suggestion-title { font-weight: 600; color: #1c1917; font-size: 0.85rem; }
+.suggestion-subtitle { font-size: 0.75rem; color: #78716c; }
+
+.search-row button {
+    background: #1c1917; color: white; border: 1px solid #000000; padding: 8px 16px;
+    border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+}
+.search-row button:hover { background: #000000; }
+
+/* ============================================
+   TABLAS Y BOTÓN DE FILTRO (Cabeceras)
+   ============================================ */
+.table-container { overflow-x: auto; border: 2px solid #a8a29e; border-radius: 4px; background: white; max-height: 60vh; }
+.table-scroll { max-height: 60vh; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 100%; }
+th {
+    background: #1c1917; color: white; padding: 10px 12px; text-align: left; font-weight: 600;
+    border-bottom: 3px solid #6b21a8; border-right: 1px solid #44403c; position: sticky; top: 0; z-index: 10; white-space: nowrap;
+}
+th:last-child { border-right: none; }
+td {
+    padding: 10px 12px; border-bottom: 1px solid #d6d3d1; border-right: 1px solid #e7e5e4;
+    color: #44403c; word-wrap: break-word; max-width: 300px; min-width: 100px; user-select: none;
+}
+td:last-child { border-right: none; }
+
+.th-filter-container {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.filter-icon {
+    cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2); transition: background 0.2s; user-select: none;
+}
+.filter-icon:hover { background: rgba(255, 255, 255, 0.4); }
+.filter-icon.active { background: #a855f7; color: white; } 
+
+/* ============================================
+   MENÚ FLOTANTE TIPO EXCEL
+   ============================================ */
+.floating-filter-menu {
+    position: absolute; background: white; border: 2px solid #1c1917; border-radius: 6px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding: 10px; z-index: 9999;
+    min-width: 240px; color: #1c1917; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;
+}
+.filter-option {
+    display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px; border-radius: 4px; transition: background 0.2s;
+}
+.filter-option:hover { background: #f0eeec; }
+.filter-list {
+    max-height: 200px; overflow-y: auto; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; padding: 4px 0; margin: 4px 0;
+}
+.filter-list::-webkit-scrollbar { width: 8px; }
+.filter-list::-webkit-scrollbar-track { background: #f1f1f1; }
+.filter-list::-webkit-scrollbar-thumb { background: #a8a29e; border-radius: 4px; }
+.filter-list::-webkit-scrollbar-thumb:hover { background: #78716c; }
+
+.filter-actions { display: flex; justify-content: space-between; margin-top: 4px; gap: 8px; }
+.filter-btn-sm { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600; transition: all 0.2s; flex: 1; }
+.filter-btn-clear { background: #e7e5e4; color: #44403c; border: 1px solid #a8a29e; }
+.filter-btn-clear:hover { background: #d6d3d1; }
+.filter-btn-confirm { background: #6b21a8; color: white; }
+.filter-btn-confirm:hover { background: #581c87; }
+
+/* ============================================
+   ⭐ NUEVA FILA DE RESULTADO INTERCALADO
+   ============================================ */
+.inline-result-row > td {
+    padding: 0 !important;
+    background-color: #f8f7f5 !important;
+    border-bottom: 2px solid #6b21a8 !important;
+}
+
+.inline-result-container {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.inline-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #1c1917;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #d6d3d1;
+    padding-bottom: 5px;
+}
+
+.inline-result-container .result-table {
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 0.85rem; 
+    background: white; 
+    border: 2px solid #a8a29e; 
+    border-radius: 4px; 
+    overflow: visible; 
+    margin: 0;
+}
+
+.inline-result-container .result-table th {
+    background: #f5f5f4; 
+    color: #44403c; 
+    padding: 10px 12px; 
+    text-align: left; 
+    font-weight: 600; 
+    border-bottom: 2px solid #a8a29e; 
+    border-right: 1px solid #d6d3d1; 
+    position: static;
+}
+
+.inline-result-container .result-table td {
+    padding: 10px 12px; 
+    border-bottom: 1px solid #d6d3d1; 
+    border-right: 1px solid #e7e5e4; 
+    color: #1c1917; 
+    vertical-align: middle; 
+    position: relative; 
+    min-width: 80px; 
+    cursor: pointer; 
+    user-select: none;
+}
+
+/* Estilo para indicar que la celda de cantidad es editable */
+td.editable-quantity {
+    background-color: #fef9c3 !important;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+td.editable-quantity:hover {
+    background-color: #fde047 !important;
+}
+
+/* Asegurar que las celdas no editables no muestren el cursor de texto */
+.inline-result-container .result-table td:not(.editable-quantity) {
+    cursor: default;
+}
+
+/* Estilo para el campo de entrada de cantidad (Input Numérico) */
+.qty-input {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #6b21a8;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #1c1917;
+    background: #ffffff;
+    outline: none;
+    box-sizing: border-box;
+    /* Eliminar las flechitas de incremento nativas para que se vea más limpio */
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ============================================
+   BOTONES FINALES
+   ============================================ */
+.table-controls-container {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.table-controls { display: flex; gap: 0.5rem; justify-content: flex-start; flex-wrap: wrap; }
+.control-btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; border: 2px solid transparent; }
+
+#exportButton, #exportXLSXButton { background: #6b21a8; color: white; border-color: #581c87; }
+#exportButton:hover, #exportXLSXButton:hover { background: #581c87; }
+
+#scrollTopButton { background: #e7e5e4; color: #44403c; border-color: #a8a29e; }
+#scrollTopButton:hover { background: #d6d3d1; }
+#clearSearchButton { background: #78716c; color: white; border-color: #57534e; }
+#clearSearchButton:hover { background: #57534e; }
+#resetButton { background: #1c1917; color: white; border-color: #000000; }
+#resetButton:hover { background: #000000; }
+
+/* ============================================
+   RESTO DE ESTILOS
+   ============================================ */
+#tableCambiosBody tr { cursor: pointer; transition: background 0.2s; }
+#tableCambiosBody tr:hover { background: #f5f5f4; }
+#tableCambiosBody tr.selected-row { background: #f3e8ff !important; border-left: 4px solid #6b21a8; }
+.row-actions button {
+    background: #6b21a8; color: white; border: 1px solid #581c87; border-radius: 4px;
+    padding: 5px 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: background 0.2s;
+}
+.row-actions button:hover { background: #581c87; }
+tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
+
+.detalles-producto-container {
+    margin-top: 1rem; padding: 1.25rem; background: #f0eeec; border: 2px solid #d6d3d1;
+    border-left: 5px solid #1c1917; border-radius: 4px; display: none;
+}
+.detalles-producto-container.visible { display: block; }
+.detalles-title { font-size: 0.95rem; margin-bottom: 0.75rem; color: #1c1917; }
+.detalles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+.detalles-item { background: white; padding: 0.5rem 0.75rem; border-radius: 4px; border: 2px solid #a8a29e; }
+.detalles-label { font-size: 0.75rem; color: #78716c; font-weight: 600; display: block; margin-bottom: 2px; }
+.detalles-value { font-size: 0.85rem; color: #1c1917; word-break: break-word; }
+
+.btn-eliminar-cambio {
+    background: white; color: #dc2626; border: 1px solid #ef4444; padding: 4px 8px;
+    border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s;
+}
+.btn-eliminar-cambio:hover { background: #fef2f2; border-color: #dc2626; }
+
+.match-highlight { background: #fef08a !important; font-weight: 600; color: #854d0e; border-radius: 2px; padding: 2px 4px; }
+.edit-actions button { font-family: sans-serif; line-height: 1; }
+.edit-actions button:hover { opacity: 0.8; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #a8a29e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #78716c; }
+
+/* Input oculto y notificaciones */
+.barcode-input { position: absolute; left: -9999px; width: 0; height: 0; opacity: 0; }
+.loading { display: inline-block; width: 16px; height: 16px; border: 2px solid #e7e5e4; border-top: 2px solid #6b21a8; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+#barcodeNotification { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; color: white; font-weight: 600; font-size: 0.9rem; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 2px solid rgba(0,0,0,0.2); transition: opacity 0.3s; }
+.notification-success { background: #16a34a; }
+.notification-error { background: #dc2626; }
+.notification-warning { background: #ca8a04; }
+
+#downloadInfoPanel { position: fixed; bottom: 20px; right: 20px; background: white; border-radius: 6px; border: 2px solid #a8a29e; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); max-width: 400px; width: calc(100% - 40px); z-index: 1001; border-top: 4px solid #6b21a8; }
+.download-panel-content { padding: 1rem; }
+.download-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.download-panel-header h3 { margin: 0; color: #1c1917; font-size: 1rem; }
+#downloadInfoPanel p { margin: 0.25rem 0; color: #57534e; font-size: 0.85rem; }
+#downloadInfoPanel details { margin-top: 0.75rem; background: #fafaf9; padding: 0.5rem; border-radius: 4px; border: 1px solid #d6d3d1; }
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    header { padding: 1rem; }
+    header h1 { font-size: 1.25rem; }
+    main { padding: 1rem; }
+    .content-container { padding: 1rem; margin: 1rem -1rem; border-radius: 0; border-left: 0; border-right: 0; }
+    .tabs { flex-direction: column; border-bottom: none; gap: 5px; }
+    .tab-btn { border-radius: 4px; border: 2px solid #e7e5e4; text-align: left; justify-content: center; }
+    .tab-btn.active { background: #f3e8ff; border-color: #6b21a8; }
+    th, td { padding: 8px 10px; font-size: 0.8rem; }
+    .result-table th, .result-table td { padding: 8px; font-size: 0.8rem; }
+    .table-controls { flex-direction: column; align-items: stretch; }
+    .control-btn { width: 100%; text-align: center; }
+    .sheets-buttons { flex-direction: column; }
+    .sheet-btn { width: 100%; }
+    .search-row { flex-direction: column; align-items: stretch; }
+    .search-input-container { width: 100%; }
+    .search-row input, .search-row button { width: 100%; font-size: 16px; padding: 10px; }
+    .table-container { max-height: 50vh; }
+    #downloadInfoPanel { bottom: 10px; right: 10px; left: 10px; width: auto; }
+    .detalles-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    body { padding: 8px; }
+    header { padding: 0.75rem; }
+    header h1 { font-size: 1.1rem; }
+    .upload-area { padding: 1.5rem 1rem; }
+    th, td { padding: 6px 8px; font-size: 0.75rem; min-width: 80px; }
+}

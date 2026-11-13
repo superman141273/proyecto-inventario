@@ -1,0 +1,1086 @@
+class InventarioApp extends BaseUploader {
+    constructor() {
+        super();
+        this.currentData = {};
+        this.currentHeaders = {};
+        this.currentFileName = '';
+        this.currentWorkbook = null;
+        this.currentSheet = '';
+        this.lastHighlightedRow = null;
+        this.historialCambios = [];
+        
+        this.columnFilters = {}; 
+        this.activeSearchTerm = ''; 
+        this.currentEditCell = null;
+        this.menuOpenForCol = -1;
+        this.currentOpenResultRow = null;
+
+        this.cacheDOM();
+        this.initEventListeners();
+        this.barcodeReader = new BarcodeReader(this);
+        this.crud = new CrudManager(this);
+        this.intentarRecuperarLocalStorage();
+    }
+
+    cacheDOM() {
+        this.fileInput = document.getElementById('fileInput');
+        this.dropZone = document.getElementById('dropZone');
+        this.fileInfo = document.getElementById('fileInfo');
+        this.sheetsContainer = document.getElementById('sheetsContainer');
+        this.sheetsButtons = document.getElementById('sheetsButtons');
+        this.contentContainer = document.getElementById('contentContainer');
+        this.sheetNameSpan = document.getElementById('sheetName');
+        this.tableInfo = document.getElementById('tableInfo');
+        this.tableHeader = document.getElementById('tableHeader');
+        this.tableBody = document.getElementById('tableBody');
+        this.manualSearchInput = document.getElementById('manualSearch');
+        this.searchSuggestions = document.getElementById('searchSuggestions');
+        
+        this.exportButton = document.getElementById('exportButton');
+        this.exportXLSXButton = document.getElementById('exportXLSXButton');
+    }
+
+    initEventListeners() {
+        this.dropZone.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT') {
+                this.fileInput.click();
+            }
+        });
+
+        this.fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) this.handleFileSelect(e.target.files[0]);
+        });
+        
+        this.dropZone.addEventListener('dragover', (e) => { e.preventDefault(); this.dropZone.classList.add('dragover'); });
+        this.dropZone.addEventListener('dragleave', () => this.dropZone.classList.remove('dragover'));
+        this.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) this.handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        document.getElementById('searchButton').addEventListener('click', () => this.manualSearch());
+        
+        this.manualSearchInput.addEventListener('input', () => {
+            this.activeSearchTerm = this.manualSearchInput.value.trim();
+            if (this.activeSearchTerm.length >= 2) {
+                this.updateSuggestions(this.activeSearchTerm);
+            } else {
+                this.searchSuggestions.classList.remove('active');
+                if (this.activeSearchTerm.length === 0) this.clearSearch();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-input-container')) {
+                this.searchSuggestions.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('floating-filter-menu');
+            if (menu && !menu.contains(e.target) && !e.target.closest('.filter-icon')) {
+                menu.remove();
+                this.menuOpenForCol = -1;
+                document.querySelectorAll('.filter-icon').forEach(icon => icon.classList.remove('active'));
+            }
+        });
+
+        this.exportButton.addEventListener('click', () => this.exportToCSV());
+        this.exportXLSXButton.addEventListener('click', () => this.exportToXLSX());
+        document.getElementById('scrollTopButton').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        document.getElementById('clearSearchButton').addEventListener('click', () => this.clearSearch());
+        document.getElementById('resetButton').addEventListener('click', () => this.resetApp());
+
+        document.getElementById('tabInventario').addEventListener('click', () => this.switchTab('viewInventario'));
+        document.getElementById('tabCambios').addEventListener('click', () => this.switchTab('viewCambios'));
+    }
+
+    switchTab(targetId) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        const btn = document.querySelector(`.tab-btn[data-target="${targetId}"]`);
+        if (btn) btn.classList.add('active');
+        const content = document.getElementById(targetId);
+        if (content) content.style.display = 'block';
+    }
+
+    refocusBarcode() {
+        const active = document.activeElement;
+        if (active && (active.contentEditable === 'true' || active === this.manualSearchInput || active.tagName === 'INPUT')) return;
+        if (this.barcodeReader) this.barcodeReader.refocus();
+    }
+
+    handleFileSelect(file) {
+        if (!file) return;
+        const name = file.name.toLowerCase();
+        if (!name.endsWith('.xlsx') && !name.endsWith('.xls') && !name.endsWith('.csv')) {
+            this.showError('Formato no válido. Usa .xlsx, .xls o .csv');
+            return;
+        }
+        this.fileInfo.innerHTML = `<p><strong>Archivo:</strong> ${file.name}</p><p><strong>Tamaño:</strong> ${this.formatFileSize(file.size)}</p><p><span class="loading"></span> Procesando archivo...</p>`;
+        this.readFile(file);
+    }
+
+    readFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (file.name.toLowerCase().endsWith('.csv')) this.processCSV(e.target.result, file.name);
+            else this.processExcel(e.target.result, file.name);
+        };
+        reader.onerror = () => this.showError('Error al leer el archivo.');
+        if (file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file, 'UTF-8');
+        else reader.readAsArrayBuffer(file);
+    }
+
+    processExcel(data, fileName) {
+        try {
+            const wb = XLSX.read(data, { type: 'array' });
+            this.currentWorkbook = wb;
+            this.currentFileName = fileName;
+            this.displaySheetButtons(wb.SheetNames);
+            if (wb.SheetNames.length > 0) this.displaySheet(wb.SheetNames[0]);
+        } catch (err) { this.showError('Error al procesar Excel: ' + err.message); }
+    }
+
+    processCSV(data, fileName) {
+        try {
+            const parsed = Papa.parse(data, { skipEmptyLines: true });
+            this.currentWorkbook = { SheetNames: ['CSV'], Sheets: { CSV: null } };
+            this.currentFileName = fileName;
+            this.currentData['CSV'] = parsed.data;
+            this.currentHeaders['CSV'] = parsed.data.length > 0 ? parsed.data[0].map((h, i) => h && h.toString().trim() !== '' ? h.toString().trim() : `Columna ${i + 1}`) : [];
+            this.displaySheetButtons(['CSV']);
+            this.displaySheet('CSV');
+        } catch (err) { this.showError('Error al procesar CSV.'); }
+    }
+
+    displaySheetButtons(sheetNames) {
+        this.sheetsButtons.innerHTML = '';
+        sheetNames.forEach((name, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'sheet-btn' + (i === 0 ? ' active' : '');
+            btn.textContent = name;
+            btn.setAttribute('data-sheet', name);
+            btn.onclick = () => this.displaySheet(name);
+            this.sheetsButtons.appendChild(btn);
+        });
+        this.sheetsContainer.style.display = 'block';
+    }
+
+    displaySheet(sheetName) {
+        document.querySelectorAll('.sheet-btn').forEach(b => b.classList.remove('active'));
+        const active = Array.from(document.querySelectorAll('.sheet-btn')).find(b => b.getAttribute('data-sheet') === sheetName);
+        if (active) active.classList.add('active');
+
+        this.currentSheet = sheetName;
+        this.sheetNameSpan.textContent = sheetName;
+        this.columnFilters = {}; 
+        this.menuOpenForCol = -1;
+        this.currentOpenResultRow = null;
+        this.lastHighlightedRow = null;
+
+        let data;
+        if (this.currentWorkbook.SheetNames.includes(sheetName) && sheetName !== 'CSV') {
+            const ws = this.currentWorkbook.Sheets[sheetName];
+            data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+            this.currentData[sheetName] = data;
+            this.currentHeaders[sheetName] = data.length > 0 ? data[0].map((h, i) => h && h.toString().trim() !== '' ? h.toString().trim() : `Columna ${i + 1}`) : [];
+        } else {
+            data = this.currentData[sheetName] || [];
+        }
+
+        this.renderTable();
+        this.contentContainer.style.display = 'block';
+        this.updateScanStatus('success', 'Listo para escanear');
+        this.switchTab('viewInventario');
+        this.refocusBarcode();
+    }
+
+    renderTable() {
+        const data = this.currentData[this.currentSheet] || [];
+        const headers = this.currentHeaders[this.currentSheet] || [];
+        this.tableHeader.innerHTML = '';
+        this.tableBody.innerHTML = '';
+        this.lastHighlightedRow = null;
+        this.currentOpenResultRow = null;
+
+        const hr = document.createElement('tr');
+        headers.forEach((h, colIdx) => {
+            const th = document.createElement('th');
+            
+            const container = document.createElement('div');
+            container.className = 'th-filter-container';
+            
+            const textSpan = document.createElement('span');
+            textSpan.textContent = h;
+            container.appendChild(textSpan);
+
+            const filterIcon = document.createElement('span');
+            filterIcon.className = 'filter-icon';
+            filterIcon.textContent = '▼';
+            filterIcon.dataset.colIndex = colIdx;
+            
+            if (this.columnFilters[colIdx]) {
+                filterIcon.classList.add('active');
+            }
+
+            filterIcon.onclick = (e) => {
+                e.stopPropagation();
+                const existingMenu = document.getElementById('floating-filter-menu');
+                
+                if (existingMenu && this.menuOpenForCol === colIdx) {
+                    existingMenu.remove();
+                    this.menuOpenForCol = -1;
+                    filterIcon.classList.remove('active');
+                } else {
+                    if (existingMenu) existingMenu.remove();
+                    document.querySelectorAll('.filter-icon').forEach(icon => icon.classList.remove('active'));
+                    filterIcon.classList.add('active');
+                    this.menuOpenForCol = colIdx;
+                    this.openDropdownFilter(e.currentTarget, colIdx);
+                }
+            };
+
+            container.appendChild(filterIcon);
+            th.appendChild(container);
+            hr.appendChild(th);
+        });
+        
+        const thAcciones = document.createElement('th');
+        thAcciones.textContent = 'Acción';
+        hr.appendChild(thAcciones);
+        this.tableHeader.appendChild(hr);
+
+        this.renderTableBodyOnly();
+    }
+
+    renderTableBodyOnly() {
+        const data = this.currentData[this.currentSheet] || [];
+        const headers = this.currentHeaders[this.currentSheet] || [];
+        this.tableBody.innerHTML = '';
+
+        let visibleCount = 0;
+        for (let i = 1; i < data.length; i++) {
+            const rowData = data[i];
+            if (!rowData || rowData.length === 0) continue;
+
+            if (!this.checkRowFilters(rowData)) continue; 
+
+            visibleCount++;
+            const tr = document.createElement('tr');
+            tr.dataset.rowIndex = i;
+            tr.id = `fila-${i}`;
+
+            for (let j = 0; j < headers.length; j++) {
+                const td = document.createElement('td');
+                td.dataset.colIndex = j;
+                const val = rowData[j] !== undefined && rowData[j] !== null ? rowData[j].toString() : '';
+                td.textContent = val;
+                if (val.length > 100) { td.textContent = val.substring(0, 100) + '...'; td.title = val; }
+                tr.appendChild(td);
+            }
+
+            const tdAcc = document.createElement('td');
+            tdAcc.className = 'row-actions';
+            const btnSel = document.createElement('button');
+            btnSel.textContent = 'Seleccionar';
+            btnSel.className = 'btn-seleccionar';
+            btnSel.onclick = () => this.seleccionarFila(i, 0);
+            tdAcc.appendChild(btnSel);
+            tr.appendChild(tdAcc);
+
+            this.tableBody.appendChild(tr);
+        }
+
+        this.tableInfo.textContent = `${visibleCount} fila${visibleCount !== 1 ? 's' : ''} visibles, ${headers.length} columna${headers.length !== 1 ? 's' : ''}`;
+    }
+
+    openDropdownFilter(iconElement, colIdx) {
+        const existingMenu = document.getElementById('floating-filter-menu');
+        if (existingMenu) existingMenu.remove();
+
+        const rect = iconElement.getBoundingClientRect();
+        const data = this.currentData[this.currentSheet] || [];
+        const uniqueValues = new Set();
+        
+        for (let i = 1; i < data.length; i++) {
+            const val = data[i][colIdx];
+            if (val !== undefined && val !== null) uniqueValues.add(val.toString().trim());
+        }
+
+        let tempFilters = this.columnFilters[colIdx] ? [...this.columnFilters[colIdx]] : Array.from(uniqueValues);
+
+        const menu = document.createElement('div');
+        menu.id = 'floating-filter-menu';
+        menu.className = 'floating-filter-menu';
+        
+        menu.style.top = `${rect.bottom + window.scrollY}px`;
+        menu.style.left = `${rect.left + window.scrollX}px`;
+
+        const allLabel = document.createElement('label');
+        allLabel.className = 'filter-option';
+        const allCheck = document.createElement('input');
+        allCheck.type = 'checkbox';
+        allCheck.checked = tempFilters.length === uniqueValues.size;
+        
+        allCheck.onchange = (e) => {
+            tempFilters = e.target.checked ? Array.from(uniqueValues) : [];
+            list.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+                chk.checked = e.target.checked;
+            });
+        };
+        
+        allLabel.appendChild(allCheck);
+        allLabel.appendChild(document.createTextNode('Seleccionar todo'));
+        menu.appendChild(allLabel);
+
+        const list = document.createElement('div');
+        list.className = 'filter-list';
+        
+        uniqueValues.forEach(val => {
+            const label = document.createElement('label');
+            label.className = 'filter-option';
+            
+            const check = document.createElement('input');
+            check.type = 'checkbox';
+            check.value = val;
+            check.checked = tempFilters.includes(val);
+            
+            check.onchange = () => {
+                if (check.checked) {
+                    if (!tempFilters.includes(val)) tempFilters.push(val);
+                } else {
+                    tempFilters = tempFilters.filter(v => v !== val);
+                }
+                allCheck.checked = tempFilters.length === uniqueValues.size;
+            };
+
+            label.appendChild(check);
+            label.appendChild(document.createTextNode(val));
+            list.appendChild(label);
+        });
+        menu.appendChild(list);
+
+        const actions = document.createElement('div');
+        actions.className = 'filter-actions';
+        
+        const btnClear = document.createElement('button');
+        btnClear.className = 'filter-btn-sm filter-btn-clear';
+        btnClear.textContent = 'Limpiar filtro';
+        btnClear.onclick = () => {
+            delete this.columnFilters[colIdx];
+            this.renderTableBodyOnly();
+            menu.remove();
+            this.menuOpenForCol = -1;
+            document.querySelectorAll('.filter-icon').forEach(icon => icon.classList.remove('active'));
+        };
+
+        const btnConfirm = document.createElement('button');
+        btnConfirm.className = 'filter-btn-sm filter-btn-confirm';
+        btnConfirm.textContent = 'Confirmar';
+        btnConfirm.onclick = () => {
+            if (tempFilters.length === uniqueValues.size) {
+                delete this.columnFilters[colIdx];
+            } else {
+                this.columnFilters[colIdx] = tempFilters;
+            }
+            this.renderTableBodyOnly();
+            menu.remove();
+            this.menuOpenForCol = -1;
+            document.querySelectorAll('.filter-icon').forEach(icon => icon.classList.remove('active'));
+        };
+
+        actions.appendChild(btnClear);
+        actions.appendChild(btnConfirm);
+        menu.appendChild(actions);
+
+        document.body.appendChild(menu);
+    }
+
+    checkRowFilters(rowData) {
+        for (const colIdx in this.columnFilters) {
+            const allowedValues = this.columnFilters[colIdx];
+            if (allowedValues.length === 0) return false; 
+            
+            const val = rowData[colIdx] !== undefined && rowData[colIdx] !== null ? rowData[colIdx].toString().trim() : '';
+            if (!allowedValues.includes(val)) return false;
+        }
+        return true;
+    }
+
+    updateSuggestions(term) {
+        const data = this.currentData[this.currentSheet];
+        const headers = this.currentHeaders[this.currentSheet];
+        if (!data || !headers) return;
+
+        const termLower = term.toLowerCase();
+        const matches = [];
+
+        for (let i = 1; i < data.length; i++) {
+            if (!this.checkRowFilters(data[i])) continue;
+
+            for (let j = 0; j < headers.length; j++) {
+                const raw = data[i][j];
+                if (raw === undefined || raw === null) continue;
+                const v = raw.toString().trim();
+
+                if (v.toLowerCase().includes(termLower)) {
+                    const descIndex = headers.findIndex(h => h.toLowerCase().includes('descrip') || h.toLowerCase().includes('nombre'));
+                    const desc = descIndex !== -1 ? data[i][descIndex] : '';
+                    
+                    if (!matches.some(m => m.val === v)) {
+                        matches.push({ val: v, desc: desc ? desc.toString().substring(0, 40) : '', rowIndex: i, colIndex: j });
+                    }
+                    if (matches.length >= 8) break; 
+                }
+            }
+            if (matches.length >= 8) break;
+        }
+
+        this.searchSuggestions.innerHTML = '';
+        
+        if (matches.length === 0) {
+            this.searchSuggestions.classList.remove('active');
+            return;
+        }
+
+        matches.forEach(m => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            
+            const title = document.createElement('span');
+            title.className = 'suggestion-title';
+            title.textContent = m.val;
+            
+            const subtitle = document.createElement('span');
+            subtitle.className = 'suggestion-subtitle';
+            subtitle.textContent = m.desc ? `Descripción: ${m.desc}...` : '';
+
+            item.appendChild(title);
+            if (m.desc) item.appendChild(subtitle);
+
+            item.onclick = () => {
+                this.manualSearchInput.value = m.val;
+                this.activeSearchTerm = m.val;
+                this.searchSuggestions.classList.remove('active');
+                this.manualSearch();
+            };
+
+            this.searchSuggestions.appendChild(item);
+        });
+
+        this.searchSuggestions.classList.add('active');
+    }
+
+    manualSearch() {
+        const term = this.activeSearchTerm;
+        if (!term || term.length < 2) {
+            this.clearSearch();
+            return;
+        }
+        const found = this.searchInData(term);
+        if (!found) this.showNotification(`No se encontraron coincidencias`, 'error');
+    }
+
+    processBarcode(code) {
+        if (!this.currentData[this.currentSheet]) {
+            this.updateScanStatus('error', 'Carga un archivo primero');
+            return;
+        }
+        this.activeSearchTerm = code;
+        this.manualSearchInput.value = code;
+        this.searchSuggestions.classList.remove('active');
+        
+        const found = this.searchInData(code);
+        if (found) {
+            this.updateScanStatus('success', `Encontrado: ${code}`);
+            this.showNotification(`Encontrado: ${code}`, 'success');
+        } else {
+            this.updateScanStatus('error', `No encontrado: ${code}`);
+            this.showNotification(`No encontrado: ${code}`, 'error');
+        }
+        this.refocusBarcode();
+    }
+
+    searchInData(term) {
+        const data = this.currentData[this.currentSheet];
+        const headers = this.currentHeaders[this.currentSheet];
+        if (!data || !headers) return false;
+
+        // Quitar resaltado anterior solo si no es la misma fila
+        if (this.lastHighlightedRow) {
+            this.lastHighlightedRow.classList.remove('highlighted');
+            this.lastHighlightedRow = null;
+        }
+
+        const termLower = term.toLowerCase();
+        
+        let foundRow = -1;
+        let foundCol = -1;
+
+        for (let i = 1; i < data.length; i++) {
+            if (!this.checkRowFilters(data[i])) continue; 
+
+            for (let j = 0; j < headers.length; j++) {
+                const raw = data[i][j];
+                if (raw === undefined || raw === null) continue;
+                const v = raw.toString().trim();
+
+                if (v.toLowerCase().includes(termLower)) {
+                    foundRow = i;
+                    foundCol = j;
+                    break;
+                }
+            }
+            if (foundRow !== -1) break;
+        }
+
+        if (foundRow === -1) {
+            this.clearSearch();
+            return false;
+        }
+
+        this.highlightRow(foundRow);
+        this.displaySearchResult(foundRow, data[foundRow], headers, term, foundCol);
+        return true;
+    }
+
+    highlightRow(dataRowIndex) {
+        // Si la fila ya está resaltada, no hacemos nada para no parpadear
+        if (this.lastHighlightedRow && this.lastHighlightedRow.id === `fila-${dataRowIndex}`) {
+            return;
+        }
+        
+        if (this.lastHighlightedRow) this.lastHighlightedRow.classList.remove('highlighted');
+        const row = document.getElementById(`fila-${dataRowIndex}`);
+        if (!row) return;
+        row.classList.add('highlighted');
+        this.lastHighlightedRow = row;
+        setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    }
+
+    seleccionarFila(rowIndex, colIndex) {
+        const data = this.currentData[this.currentSheet];
+        const headers = this.currentHeaders[this.currentSheet];
+        if (!data || !data[rowIndex]) return;
+
+        this.highlightRow(rowIndex);
+        this.displaySearchResult(rowIndex, data[rowIndex], headers, '', colIndex);
+    }
+
+    displaySearchResult(rowIndex, rowData, headers, term, matchColIndex) {
+        if (this.currentOpenResultRow) {
+            this.currentOpenResultRow.remove();
+            this.currentOpenResultRow = null;
+        }
+
+        const targetRow = document.getElementById(`fila-${rowIndex}`);
+        if (!targetRow) return;
+
+        let qtyColIndex = -1;
+        const qtyKeywords = ['existencia', 'cantidad', 'stock', 'qty', 'unidades'];
+        
+        for (let i = 0; i < headers.length; i++) {
+            const headerLower = headers[i].toLowerCase();
+            if (qtyKeywords.some(kw => headerLower.includes(kw))) {
+                qtyColIndex = i;
+                break;
+            }
+        }
+
+        const resultTr = document.createElement('tr');
+        resultTr.className = 'inline-result-row';
+        
+        const td = document.createElement('td');
+        td.colSpan = headers.length + 1;
+
+        const container = document.createElement('div');
+        container.className = 'inline-result-container';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'inline-result-header';
+        headerDiv.innerHTML = `<span>Resultado de Búsqueda</span> <button class="close-btn" style="font-size:1.2rem;">&times;</button>`;
+        
+        headerDiv.querySelector('.close-btn').onclick = (e) => {
+            e.stopPropagation();
+            resultTr.remove();
+            this.currentOpenResultRow = null;
+        };
+
+        container.appendChild(headerDiv);
+
+        const table = document.createElement('table');
+        table.className = 'result-table';
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        headers.forEach((h) => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        const tr = document.createElement('tr');
+        tr.dataset.rowIndex = rowIndex;
+
+        let qtyInputReference = null;
+        let qtyCellReference = null;
+
+        headers.forEach((_, colIdx) => {
+            const cell = document.createElement('td');
+            cell.dataset.colIndex = colIdx;
+            const raw = rowData[colIdx];
+            const txt = raw !== undefined && raw !== null ? raw.toString() : '';
+            
+            if (term && txt.toLowerCase().includes(term.toLowerCase()) && txt !== '') {
+                const regex = new RegExp(`(${term})`, 'gi');
+                cell.innerHTML = txt.replace(regex, '<span class="match-highlight">$1</span>');
+            } else {
+                cell.textContent = txt;
+            }
+
+            if (colIdx === qtyColIndex) {
+                cell.classList.add('editable-quantity');
+                cell.innerHTML = ''; 
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = txt;
+                input.className = 'qty-input';
+                input.setAttribute('inputmode', 'numeric');
+                input.setAttribute('pattern', '[0-9]*');
+                
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.confirmQuantityEdit(cell, input, rowIndex, colIdx);
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.cancelQuantityEdit(cell, txt);
+                    }
+                };
+
+                input.onblur = () => {
+                    this.confirmQuantityEdit(cell, input, rowIndex, colIdx);
+                };
+
+                cell.appendChild(input);
+                qtyInputReference = input;
+                qtyCellReference = cell;
+            } else {
+                cell.style.cursor = 'default';
+                cell.style.backgroundColor = '#f9f9f9';
+            }
+
+            tr.appendChild(cell);
+        });
+        tbody.appendChild(tr);
+        table.appendChild(tbody);
+        container.appendChild(table);
+
+        // BOTONES DE PALOMITA Y EQUIS
+        if (qtyCellReference) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'edit-actions-row';
+            actionsDiv.style.display = 'flex';
+            actionsDiv.style.justifyContent = 'flex-end';
+            actionsDiv.style.gap = '10px';
+            actionsDiv.style.marginTop = '10px';
+
+            const btnCancel = document.createElement('button');
+            btnCancel.className = 'control-btn';
+            btnCancel.style.background = '#dc2626';
+            btnCancel.style.color = 'white';
+            btnCancel.style.border = '2px solid #b91c1c';
+            btnCancel.style.padding = '8px 20px';
+            btnCancel.style.borderRadius = '4px';
+            btnCancel.style.fontSize = '0.85rem';
+            btnCancel.style.fontWeight = 'bold';
+            btnCancel.innerHTML = '✖ Cancelar';
+            // ⭐ IMPORTANTE: mousedown con preventDefault evita que el input pierda foco antes de tiempo
+            btnCancel.onmousedown = (e) => e.preventDefault();
+            btnCancel.onclick = (e) => {
+                e.stopPropagation();
+                this.cancelQuantityEdit(qtyCellReference, rowData[qtyColIndex]);
+            };
+
+            const btnConfirm = document.createElement('button');
+            btnConfirm.className = 'control-btn';
+            btnConfirm.style.background = '#16a34a';
+            btnConfirm.style.color = 'white';
+            btnConfirm.style.border = '2px solid #15803d';
+            btnConfirm.style.padding = '8px 20px';
+            btnConfirm.style.borderRadius = '4px';
+            btnConfirm.style.fontSize = '0.85rem';
+            btnConfirm.style.fontWeight = 'bold';
+            btnConfirm.innerHTML = '✔ Confirmar';
+            // ⭐ IMPORTANTE: mousedown con preventDefault evita que el input pierda foco antes de tiempo
+            btnConfirm.onmousedown = (e) => e.preventDefault();
+            btnConfirm.onclick = (e) => {
+                e.stopPropagation();
+                this.confirmQuantityEdit(qtyCellReference, qtyInputReference, rowIndex, qtyColIndex);
+            };
+
+            actionsDiv.appendChild(btnCancel);
+            actionsDiv.appendChild(btnConfirm);
+            container.appendChild(actionsDiv);
+        }
+
+        td.appendChild(container);
+        resultTr.appendChild(td);
+
+        targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
+        this.currentOpenResultRow = resultTr;
+
+        if (qtyInputReference) {
+            setTimeout(() => {
+                qtyInputReference.focus();
+                qtyInputReference.select();
+            }, 100);
+        }
+    }
+
+    // ⭐ CONFIRMAR: CIERRA EL RESULTADO PERO MANTIENE EL RESALTADO
+    confirmQuantityEdit(cell, input, rowIndex, colIdx) {
+        const nuevoValor = input.value.trim();
+        const data = this.currentData[this.currentSheet];
+        
+        cell.innerHTML = nuevoValor;
+
+        if (data && data[rowIndex]) {
+            const valorAnterior = data[rowIndex][colIdx] !== undefined && data[rowIndex][colIdx] !== null ? data[rowIndex][colIdx].toString() : '';
+            
+            if (valorAnterior !== nuevoValor) {
+                data[rowIndex][colIdx] = nuevoValor;
+                
+                const mainRow = document.getElementById(`fila-${rowIndex}`);
+                if (mainRow) {
+                    const mainCell = mainRow.querySelector(`td[data-col-index="${colIdx}"]`);
+                    if (mainCell) mainCell.textContent = nuevoValor;
+                    
+                    // Aseguramos que la fila principal quede resaltada
+                    mainRow.classList.add('highlighted');
+                    this.lastHighlightedRow = mainRow;
+                }
+                
+                this.registrarCambio(rowIndex, colIdx, valorAnterior, nuevoValor);
+                this.guardarEnLocalStorage();
+                this.showNotification('Cantidad actualizada', 'success');
+            }
+        }
+
+        // Cerrar el resultado de búsqueda (pero NO quitar el highlight de la fila principal)
+        if (this.currentOpenResultRow) {
+            this.currentOpenResultRow.remove();
+            this.currentOpenResultRow = null;
+        }
+
+        // ⭐ IMPORTANTE: Quitar foco del input para que el teclado virtual NO se abra.
+        // En lugar de refocusBarcode(), hacemos blur() para cerrar cualquier teclado virtual.
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+    }
+
+    // ⭐ CANCELAR: CIERRA EL RESULTADO Y QUITA EL RESALTADO
+    cancelQuantityEdit(cell, originalValue) {
+        cell.innerHTML = originalValue;
+        this.showNotification('Edición cancelada', 'warning');
+
+        // Cerrar el resultado
+        if (this.currentOpenResultRow) {
+            this.currentOpenResultRow.remove();
+            this.currentOpenResultRow = null;
+        }
+
+        // Quitar el resaltado de la fila principal
+        if (this.lastHighlightedRow) {
+            this.lastHighlightedRow.classList.remove('highlighted');
+            this.lastHighlightedRow = null;
+        }
+
+        // ⭐ IMPORTANTE: Quitar foco del input para que el teclado virtual NO se abra.
+        // En lugar de refocusBarcode(), hacemos blur() para cerrar cualquier teclado virtual.
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+    }
+
+    // ... (resto de funciones: registrarCambio, actualizarVistaCambios, mostrarDetallesProducto, deshacerCambio, exportar, etc.) ...
+    registrarCambio(rowIndex, colIndex, valorAnterior, valorNuevo) {
+        const headers = this.currentHeaders[this.currentSheet];
+        const nombreColumna = headers[colIndex] || `Columna ${colIndex + 1}`;
+
+        const cambioExistenteIndex = this.historialCambios.findIndex(
+            c => c.fila === rowIndex && c.columnaIdx === colIndex
+        );
+
+        if (cambioExistenteIndex !== -1) {
+            if (valorNuevo === this.historialCambios[cambioExistenteIndex].anterior) {
+                this.historialCambios.splice(cambioExistenteIndex, 1);
+            } else {
+                this.historialCambios[cambioExistenteIndex].nuevo = valorNuevo;
+            }
+        } else {
+            this.historialCambios.push({
+                id: Date.now() + Math.random().toString(36).substr(2, 5),
+                fila: rowIndex,
+                columnaIdx: colIndex,
+                columna: nombreColumna,
+                anterior: valorAnterior,
+                nuevo: valorNuevo
+            });
+        }
+        this.actualizarVistaCambios();
+    }
+
+    actualizarVistaCambios() {
+        const tbody = document.getElementById('tableCambiosBody');
+        const badge = document.getElementById('badgeCambios');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        if (this.historialCambios.length > 0) {
+            badge.textContent = this.historialCambios.length;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+
+        this.historialCambios.forEach((cambio) => {
+            const tr = document.createElement('tr');
+            
+            tr.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-eliminar-cambio')) return;
+                document.querySelectorAll('#tableCambiosBody tr').forEach(r => r.classList.remove('selected-row'));
+                tr.classList.add('selected-row');
+                this.mostrarDetallesProducto(cambio.fila);
+            });
+
+            const tdFila = document.createElement('td');
+            tdFila.textContent = cambio.fila;
+            tr.appendChild(tdFila);
+
+            const tdCol = document.createElement('td');
+            tdCol.textContent = cambio.columna;
+            tr.appendChild(tdCol);
+
+            const tdAnt = document.createElement('td');
+            tdAnt.textContent = cambio.anterior;
+            tdAnt.style.color = '#dc3545';
+            tdAnt.style.textDecoration = 'line-through';
+            tr.appendChild(tdAnt);
+
+            const tdNuevo = document.createElement('td');
+            tdNuevo.textContent = cambio.nuevo;
+            tdNuevo.style.color = '#28a745';
+            tdNuevo.style.fontWeight = 'bold';
+            tr.appendChild(tdNuevo);
+
+            const tdAccion = document.createElement('td');
+            const btnEliminar = document.createElement('button');
+            btnEliminar.className = 'btn-eliminar-cambio';
+            btnEliminar.innerHTML = 'Deshacer';
+            btnEliminar.title = 'Revertir al valor original';
+            btnEliminar.onclick = () => this.deshacerCambio(cambio.id);
+            tdAccion.appendChild(btnEliminar);
+            tr.appendChild(tdAccion);
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    mostrarDetallesProducto(rowIndex) {
+        const data = this.currentData[this.currentSheet];
+        const headers = this.currentHeaders[this.currentSheet];
+        if (!data || !data[rowIndex]) return;
+
+        const producto = data[rowIndex];
+        const contenedor = document.getElementById('detallesProducto');
+        const grid = document.getElementById('detallesGrid');
+        
+        grid.innerHTML = '';
+        
+        headers.forEach((header, idx) => {
+            const item = document.createElement('div');
+            item.className = 'detalles-item';
+            const label = document.createElement('span');
+            label.className = 'detalles-label';
+            label.textContent = header;
+            const val = document.createElement('div');
+            val.className = 'detalles-value';
+            val.textContent = producto[idx] !== undefined && producto[idx] !== null ? producto[idx].toString() : '';
+            item.appendChild(label);
+            item.appendChild(val);
+            grid.appendChild(item);
+        });
+        contenedor.classList.add('visible');
+    }
+
+    deshacerCambio(idCambio) {
+        if (!confirm('¿Estás seguro de deshacer este cambio? El valor volverá a como estaba antes.')) return;
+        const index = this.historialCambios.findIndex(c => c.id === idCambio);
+        if (index === -1) return;
+        const cambio = this.historialCambios[index];
+        const data = this.currentData[this.currentSheet];
+
+        if (data && data[cambio.fila]) {
+            data[cambio.fila][cambio.columnaIdx] = cambio.anterior;
+            this.renderTable(); 
+
+            const detalleContainer = document.getElementById('detallesProducto');
+            if (detalleContainer.classList.contains('visible')) {
+                this.mostrarDetallesProducto(cambio.fila);
+            }
+        }
+        this.historialCambios.splice(index, 1);
+        this.actualizarVistaCambios();
+        this.guardarEnLocalStorage();
+        this.showNotification('Cambio deshecho correctamente', 'success');
+    }
+
+    exportToCSV() {
+        if (!this.currentData[this.currentSheet]) { this.showNotification('No hay datos para exportar', 'error'); return; }
+        
+        const data = this.currentData[this.currentSheet];
+        
+        const csv = '\uFEFF' + data.map(row => row.map(cell => {
+            const v = cell !== undefined && cell !== null ? cell.toString() : '';
+            return (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : v;
+        }).join(',')).join('\r\n');
+        
+        const name = this.generarNombreArchivo('csv');
+        this.descargarBlob(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), name);
+    }
+
+    exportToXLSX() {
+        if (!this.currentData[this.currentSheet]) { this.showNotification('No hay datos para exportar', 'error'); return; }
+        
+        const data = this.currentData[this.currentSheet];
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, this.currentSheet);
+        const name = this.generarNombreArchivo('xlsx');
+        XLSX.writeFile(wb, name);
+        this.showNotification(`Descargado: ${name}`, 'success');
+        this.showDownloadInfo(name);
+    }
+
+    generarNombreArchivo(ext) {
+        const now = new Date();
+        const f = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        const h = `${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+        const base = (this.currentFileName || 'inventario').replace(/\.[^/.]+$/, '');
+        return `${base}_${this.currentSheet}_${f}_${h}.${ext}`;
+    }
+
+    descargarBlob(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        this.showNotification(`Descargado: ${fileName}`, 'success');
+        this.showDownloadInfo(fileName);
+    }
+
+    showDownloadInfo(fileName) {
+        const prev = document.getElementById('downloadInfoPanel');
+        if (prev) prev.remove();
+        const panel = document.createElement('div');
+        panel.id = 'downloadInfoPanel';
+        panel.innerHTML = `
+            <div class="download-panel-content">
+                <div class="download-panel-header">
+                    <h3>Archivo descargado</h3>
+                    <button class="close-btn" onclick="document.getElementById('downloadInfoPanel').remove()">&times;</button>
+                </div>
+                <p><strong>Archivo:</strong> ${fileName}</p>
+                <p><strong>Ubicación:</strong> carpeta <strong>Descargas</strong></p>
+                <details style="margin-top:1rem;">
+                    <summary style="cursor:pointer;color:#4facfe;font-weight:bold;">¿Quieres elegir la carpeta cada vez?</summary>
+                    <div style="margin-top:0.75rem;font-size:0.9rem;line-height:1.6;">
+                        <p><strong>Chrome / Edge:</strong> Menú (⋮) → Configuración → Descargas → Activar "Preguntar dónde guardar cada archivo"</p>
+                        <p><strong>Firefox:</strong> Menú (☰) → Ajustes → General → Descargas → Activar "Preguntar siempre dónde guardar los archivos"</p>
+                    </div>
+                </details>
+            </div>`;
+        document.body.appendChild(panel);
+        setTimeout(() => { if (panel.parentNode) panel.remove(); }, 15000);
+    }
+
+    guardarEnLocalStorage() {
+        try {
+            localStorage.setItem('inventario_actual', JSON.stringify({
+                data: this.currentData, headers: this.currentHeaders, sheet: this.currentSheet,
+                fileName: this.currentFileName, historial: this.historialCambios, timestamp: Date.now()
+            }));
+        } catch (e) { console.warn('No se pudo guardar en localStorage', e); }
+    }
+
+    intentarRecuperarLocalStorage() {
+        try {
+            const raw = localStorage.getItem('inventario_actual');
+            if (!raw) return;
+            const saved = JSON.parse(raw);
+            if (!saved.data || !saved.sheet) return;
+
+            const fecha = new Date(saved.timestamp).toLocaleString('es-MX');
+            if (confirm(`¿Recuperar el inventario sin guardar del ${fecha}?`)) {
+                this.currentData = saved.data;
+                this.currentHeaders = saved.headers;
+                this.currentSheet = saved.sheet;
+                this.currentFileName = saved.fileName;
+                if (saved.historial) this.historialCambios = saved.historial;
+                this.currentWorkbook = { SheetNames: Object.keys(this.currentData), Sheets: {} };
+                
+                this.displaySheetButtons(Object.keys(this.currentData));
+                this.displaySheet(this.currentSheet); 
+                this.actualizarVistaCambios();
+                this.contentContainer.style.display = 'block';
+                this.updateScanStatus('success', 'Inventario recuperado');
+                this.showNotification('Inventario recuperado', 'success');
+                this.switchTab('viewInventario');
+                this.refocusBarcode();
+            } else { localStorage.removeItem('inventario_actual'); }
+        } catch (e) { console.warn('Error recuperando localStorage', e); }
+    }
+
+    resetApp() {
+        if (!confirm('¿Cerrar el inventario actual? Los cambios no exportados se perderán.')) return;
+        localStorage.removeItem('inventario_actual');
+        this.currentData = {}; this.currentHeaders = {}; this.currentFileName = '';
+        this.currentWorkbook = null; this.currentSheet = ''; this.lastHighlightedRow = null;
+        this.historialCambios = []; this.columnFilters = {}; this.activeSearchTerm = '';
+        this.menuOpenForCol = -1;
+        this.currentOpenResultRow = null;
+        
+        this.actualizarVistaCambios();
+        document.getElementById('detallesProducto').classList.remove('visible');
+
+        this.fileInfo.innerHTML = '<p>No se ha seleccionado ningún archivo</p>';
+        this.sheetsContainer.style.display = 'none';
+        this.contentContainer.style.display = 'none';
+        this.manualSearchInput.value = '';
+        this.searchSuggestions.classList.remove('active');
+        this.fileInput.value = '';
+        this.updateScanStatus('success', 'Esperando archivo...');
+        this.showNotification('Listo para cargar nuevo archivo', 'success');
+    }
+
+    showError(msg) {
+        this.fileInfo.innerHTML = `<p style="color:#dc3545;">${msg}</p>`;
+        this.sheetsContainer.style.display = 'none';
+        this.contentContainer.style.display = 'none';
+        this.updateScanStatus('error', 'Error al cargar archivo');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.app = new InventarioApp();
+});
