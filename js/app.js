@@ -677,7 +677,7 @@ class InventarioApp extends BaseUploader {
                     clearTimeout(barcodeTimeout);
                     barcodeTimeout = setTimeout(() => {
                         barcodeBuffer = '';
-                    }, 200);
+                    }, 500);
 
                     if (barcodeBuffer.length >= 5) {
                         const scannedCode = barcodeBuffer;

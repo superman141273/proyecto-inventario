@@ -1,6 +1,3 @@
-// ============================================
-// Lector de código de barras
-// ============================================
 class BarcodeReader {
     constructor(uploader) {
         this.uploader = uploader;
@@ -35,7 +32,7 @@ class BarcodeReader {
                     } else {
                         this.buffer = '';
                     }
-                }, 150);
+                }, 300);
             }
         });
 
