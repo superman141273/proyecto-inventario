@@ -48,6 +48,13 @@ main { padding: 2rem; background: #f8fafc; }
 }
 .file-btn:hover { background: #6b21a8; box-shadow: 0 4px 6px rgba(126, 34, 206, 0.3); }
 
+.file-btn.cambiar-archivo {
+    background: #eadcd2; color: #5c4a3d; border-color: #d1bfae; padding: 6px 16px; font-size: 0.85rem;
+}
+.file-btn.cambiar-archivo:hover {
+    background: #d1bfae; color: #27272a;
+}
+
 .file-info {
     background: #f4ece6; padding: 1rem; border-radius: 4px;
     border: 2px solid #d1bfae; color: #5c4a3d; font-size: 0.9rem;
@@ -140,7 +147,6 @@ td {
 td:last-child { border-right: none; }
 tr:hover td { background-color: #f4ece6; }
 
-/* ⭐ ELIMINAR RESALTADO DE TOQUE EN TODA LA TABLA Y SUS FILAS ⭐ */
 table, thead, tbody, tr, th, td, button, .table-scroll, .row-actions button {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none; 
@@ -169,7 +175,6 @@ table, thead, tbody, tr, th, td, button, .table-scroll, .row-actions button {
 .filter-btn-confirm { background: #7e22ce; color: white; }
 .filter-btn-confirm:hover { background: #6b21a8; }
 
-/* ⭐ ACORDEÓN DE RESULTADO (COMPACTO Y PEGADO A LA FILA) ⭐ */
 .inline-result-row > td {
     padding: 0 !important;
     border: none !important;
@@ -220,7 +225,6 @@ table, thead, tbody, tr, th, td, button, .table-scroll, .row-actions button {
 .qty-input:focus { box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.3); }
 td.editable-quantity { background-color: #fef9c3 !important; padding: 4px !important; }
 
-/* Botones de acción compactos y a la derecha */
 .edit-actions-row { 
     display: flex; 
     justify-content: flex-end; 

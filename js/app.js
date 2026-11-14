@@ -37,17 +37,42 @@ class InventarioApp extends BaseUploader {
         this.clearSearchInputBtn = document.getElementById('clearSearchInputBtn');
         this.exportButton = document.getElementById('exportButton');
         this.exportXLSXButton = document.getElementById('exportXLSXButton');
+        
+        this.dropText = document.getElementById('dropText');
+        this.fileBtnLabel = document.getElementById('fileBtnLabel');
     }
 
     initEventListeners() {
+        this.fileBtnLabel.addEventListener('click', (e) => {
+            if (this.currentFileName) {
+                const confirmar = confirm("¿Seguro que quieres cargar otro archivo? Se perderán los cambios no exportados del archivo actual.");
+                if (confirmar) {
+                    this.limpiarInterfaz();
+                } else {
+                    e.preventDefault();
+                }
+            }
+        });
+
         this.dropZone.addEventListener('click', (e) => {
             if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT') {
-                this.fileInput.click();
+                if (this.currentFileName) {
+                    const confirmar = confirm("¿Seguro que quieres cargar otro archivo? Se perderán los cambios no exportados del archivo actual.");
+                    if (confirmar) {
+                        this.limpiarInterfaz();
+                        this.fileInput.click();
+                    }
+                } else {
+                    this.fileInput.click();
+                }
             }
         });
 
         this.fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) this.handleFileSelect(e.target.files[0]);
+            if (e.target.files.length > 0) {
+                this.handleFileSelect(e.target.files[0]);
+                this.fileInput.value = '';
+            }
         });
 
         this.dropZone.addEventListener('dragover', (e) => { e.preventDefault(); this.dropZone.classList.add('dragover'); });
@@ -55,7 +80,17 @@ class InventarioApp extends BaseUploader {
         this.dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             this.dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) this.handleFileSelect(e.dataTransfer.files[0]);
+            if (e.dataTransfer.files.length > 0) {
+                if (this.currentFileName) {
+                    const confirmar = confirm("¿Seguro que quieres cargar otro archivo? Se perderán los cambios no exportados del archivo actual.");
+                    if (confirmar) {
+                        this.limpiarInterfaz();
+                        this.handleFileSelect(e.dataTransfer.files[0]);
+                    }
+                } else {
+                    this.handleFileSelect(e.dataTransfer.files[0]);
+                }
+            }
         });
 
         document.getElementById('searchButton').addEventListener('click', () => this.manualSearch());
@@ -154,13 +189,16 @@ class InventarioApp extends BaseUploader {
             if (file.name.toLowerCase().endsWith('.csv')) this.processCSV(e.target.result, file.name);
             else this.processExcel(e.target.result, file.name);
             
-            // ⭐ DESPLAZAMIENTO AUTOMÁTICO HACIA LA TABLA AL CARGAR
+            this.dropText.textContent = 'Archivo cargado correctamente';
+            this.fileBtnLabel.textContent = 'Cambiar archivo';
+            this.fileBtnLabel.classList.add('cambiar-archivo');
+
             setTimeout(() => {
                 const tableContainer = document.getElementById('tableContainer');
                 if (tableContainer) {
                     tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-            }, 500); // Un pequeño retraso para asegurar que la tabla ya se pintó
+            }, 500);
         };
         reader.onerror = () => this.showError('Error al leer el archivo.');
         if (file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file, 'UTF-8');
@@ -1043,8 +1081,7 @@ class InventarioApp extends BaseUploader {
         this.showNotification(`Descargado: ${fileName}`, 'success');
     }
 
-    resetApp() {
-        if (!confirm('¿Cerrar el inventario actual? Los cambios no exportados se perderán.')) return;
+    limpiarInterfaz() {
         this.currentData = {}; this.currentHeaders = {}; this.currentFileName = '';
         this.currentWorkbook = null; this.currentSheet = ''; this.lastHighlightedRow = null;
         this.historialCambios = []; this.columnFilters = {}; this.activeSearchTerm = '';
@@ -1060,8 +1097,17 @@ class InventarioApp extends BaseUploader {
         this.manualSearchInput.value = '';
         this.clearSearchInputBtn.style.display = 'none';
         this.searchSuggestions.classList.remove('active');
-        this.fileInput.value = '';
         this.updateScanStatus('success', 'Esperando archivo...');
+        
+        this.dropText.textContent = 'Arrastra tu archivo de inventario aquí';
+        this.fileBtnLabel.textContent = 'Seleccionar archivo (.xlsx, .xls, .csv)';
+        this.fileBtnLabel.classList.remove('cambiar-archivo');
+    }
+
+    resetApp() {
+        if (!confirm('¿Cerrar el inventario actual? Los cambios no exportados se perderán.')) return;
+        this.fileInput.value = '';
+        this.limpiarInterfaz();
         this.showNotification('Listo para cargar nuevo archivo', 'success');
     }
 
