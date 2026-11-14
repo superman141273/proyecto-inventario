@@ -8,9 +8,8 @@ class InventarioApp extends BaseUploader {
         this.currentSheet = '';
         this.lastHighlightedRow = null;
         this.historialCambios = [];
-        
-        this.columnFilters = {}; 
-        this.activeSearchTerm = ''; 
+        this.columnFilters = {};
+        this.activeSearchTerm = '';
         this.currentEditCell = null;
         this.menuOpenForCol = -1;
         this.currentOpenResultRow = null;
@@ -19,7 +18,6 @@ class InventarioApp extends BaseUploader {
         this.initEventListeners();
         this.barcodeReader = new BarcodeReader(this);
         this.crud = new CrudManager(this);
-        
         this.initKeyboardDetector();
     }
 
@@ -37,7 +35,6 @@ class InventarioApp extends BaseUploader {
         this.manualSearchInput = document.getElementById('manualSearch');
         this.searchSuggestions = document.getElementById('searchSuggestions');
         this.clearSearchInputBtn = document.getElementById('clearSearchInputBtn');
-        
         this.exportButton = document.getElementById('exportButton');
         this.exportXLSXButton = document.getElementById('exportXLSXButton');
     }
@@ -52,7 +49,7 @@ class InventarioApp extends BaseUploader {
         this.fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) this.handleFileSelect(e.target.files[0]);
         });
-        
+
         this.dropZone.addEventListener('dragover', (e) => { e.preventDefault(); this.dropZone.classList.add('dragover'); });
         this.dropZone.addEventListener('dragleave', () => this.dropZone.classList.remove('dragover'));
         this.dropZone.addEventListener('drop', (e) => {
@@ -62,16 +59,14 @@ class InventarioApp extends BaseUploader {
         });
 
         document.getElementById('searchButton').addEventListener('click', () => this.manualSearch());
-        
+
         this.manualSearchInput.addEventListener('input', () => {
             this.activeSearchTerm = this.manualSearchInput.value.trim();
-            
             if (this.activeSearchTerm.length > 0) {
                 this.clearSearchInputBtn.style.display = 'flex';
             } else {
                 this.clearSearchInputBtn.style.display = 'none';
             }
-
             if (this.activeSearchTerm.length >= 2) {
                 this.updateSuggestions(this.activeSearchTerm);
             } else {
@@ -113,17 +108,14 @@ class InventarioApp extends BaseUploader {
 
     initKeyboardDetector() {
         if (!window.visualViewport) return;
-
         const handleResize = () => {
             const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 150;
-            
             if (isKeyboardOpen) {
                 document.body.classList.add('keyboard-open');
             } else {
                 document.body.classList.remove('keyboard-open');
             }
         };
-
         window.visualViewport.addEventListener('resize', handleResize);
         window.visualViewport.addEventListener('scroll', handleResize);
     }
@@ -157,6 +149,8 @@ class InventarioApp extends BaseUploader {
     readFile(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
+            this.historialCambios = [];
+            this.actualizarVistaCambios();
             if (file.name.toLowerCase().endsWith('.csv')) this.processCSV(e.target.result, file.name);
             else this.processExcel(e.target.result, file.name);
         };
@@ -207,7 +201,7 @@ class InventarioApp extends BaseUploader {
 
         this.currentSheet = sheetName;
         this.sheetNameSpan.textContent = sheetName;
-        this.columnFilters = {}; 
+        this.columnFilters = {};
         this.menuOpenForCol = -1;
         this.currentOpenResultRow = null;
         this.lastHighlightedRow = null;
@@ -239,10 +233,8 @@ class InventarioApp extends BaseUploader {
         const hr = document.createElement('tr');
         headers.forEach((h, colIdx) => {
             const th = document.createElement('th');
-            
             const container = document.createElement('div');
             container.className = 'th-filter-container';
-            
             const textSpan = document.createElement('span');
             textSpan.textContent = h;
             container.appendChild(textSpan);
@@ -251,7 +243,6 @@ class InventarioApp extends BaseUploader {
             filterIcon.className = 'filter-icon';
             filterIcon.textContent = '▼';
             filterIcon.dataset.colIndex = colIdx;
-            
             if (this.columnFilters[colIdx]) {
                 filterIcon.classList.add('active');
             }
@@ -259,7 +250,6 @@ class InventarioApp extends BaseUploader {
             filterIcon.onclick = (e) => {
                 e.stopPropagation();
                 const existingMenu = document.getElementById('floating-filter-menu');
-                
                 if (existingMenu && this.menuOpenForCol === colIdx) {
                     existingMenu.remove();
                     this.menuOpenForCol = -1;
@@ -277,7 +267,7 @@ class InventarioApp extends BaseUploader {
             th.appendChild(container);
             hr.appendChild(th);
         });
-        
+
         const thAcciones = document.createElement('th');
         thAcciones.textContent = 'Acción';
         hr.appendChild(thAcciones);
@@ -295,8 +285,7 @@ class InventarioApp extends BaseUploader {
         for (let i = 1; i < data.length; i++) {
             const rowData = data[i];
             if (!rowData || rowData.length === 0) continue;
-
-            if (!this.checkRowFilters(rowData)) continue; 
+            if (!this.checkRowFilters(rowData)) continue;
 
             visibleCount++;
             const tr = document.createElement('tr');
@@ -334,7 +323,7 @@ class InventarioApp extends BaseUploader {
         const rect = iconElement.getBoundingClientRect();
         const data = this.currentData[this.currentSheet] || [];
         const uniqueValues = new Set();
-        
+
         for (let i = 1; i < data.length; i++) {
             const val = data[i][colIdx];
             if (val !== undefined && val !== null) uniqueValues.add(val.toString().trim());
@@ -345,7 +334,7 @@ class InventarioApp extends BaseUploader {
         const menu = document.createElement('div');
         menu.id = 'floating-filter-menu';
         menu.className = 'floating-filter-menu';
-        
+
         menu.style.top = `${rect.bottom + window.scrollY}px`;
         menu.style.left = `${rect.left + window.scrollX}px`;
 
@@ -354,30 +343,30 @@ class InventarioApp extends BaseUploader {
         const allCheck = document.createElement('input');
         allCheck.type = 'checkbox';
         allCheck.checked = tempFilters.length === uniqueValues.size;
-        
+
         allCheck.onchange = (e) => {
             tempFilters = e.target.checked ? Array.from(uniqueValues) : [];
             list.querySelectorAll('input[type="checkbox"]').forEach(chk => {
                 chk.checked = e.target.checked;
             });
         };
-        
+
         allLabel.appendChild(allCheck);
         allLabel.appendChild(document.createTextNode('Seleccionar todo'));
         menu.appendChild(allLabel);
 
         const list = document.createElement('div');
         list.className = 'filter-list';
-        
+
         uniqueValues.forEach(val => {
             const label = document.createElement('label');
             label.className = 'filter-option';
-            
+
             const check = document.createElement('input');
             check.type = 'checkbox';
             check.value = val;
             check.checked = tempFilters.includes(val);
-            
+
             check.onchange = () => {
                 if (check.checked) {
                     if (!tempFilters.includes(val)) tempFilters.push(val);
@@ -395,7 +384,7 @@ class InventarioApp extends BaseUploader {
 
         const actions = document.createElement('div');
         actions.className = 'filter-actions';
-        
+
         const btnClear = document.createElement('button');
         btnClear.className = 'filter-btn-sm filter-btn-clear';
         btnClear.textContent = 'Limpiar filtro';
@@ -432,8 +421,7 @@ class InventarioApp extends BaseUploader {
     checkRowFilters(rowData) {
         for (const colIdx in this.columnFilters) {
             const allowedValues = this.columnFilters[colIdx];
-            if (allowedValues.length === 0) return false; 
-            
+            if (allowedValues.length === 0) return false;
             const val = rowData[colIdx] !== undefined && rowData[colIdx] !== null ? rowData[colIdx].toString().trim() : '';
             if (!allowedValues.includes(val)) return false;
         }
@@ -450,27 +438,23 @@ class InventarioApp extends BaseUploader {
 
         for (let i = 1; i < data.length; i++) {
             if (!this.checkRowFilters(data[i])) continue;
-
             for (let j = 0; j < headers.length; j++) {
                 const raw = data[i][j];
                 if (raw === undefined || raw === null) continue;
                 const v = raw.toString().trim();
-
                 if (v.toLowerCase().includes(termLower)) {
                     const descIndex = headers.findIndex(h => h.toLowerCase().includes('descrip') || h.toLowerCase().includes('nombre'));
                     const desc = descIndex !== -1 ? data[i][descIndex] : '';
-                    
                     if (!matches.some(m => m.val === v)) {
                         matches.push({ val: v, desc: desc ? desc.toString().substring(0, 40) : '', rowIndex: i, colIndex: j });
                     }
-                    if (matches.length >= 8) break; 
+                    if (matches.length >= 8) break;
                 }
             }
             if (matches.length >= 8) break;
         }
 
         this.searchSuggestions.innerHTML = '';
-        
         if (matches.length === 0) {
             this.searchSuggestions.classList.remove('active');
             return;
@@ -479,11 +463,11 @@ class InventarioApp extends BaseUploader {
         matches.forEach(m => {
             const item = document.createElement('div');
             item.className = 'suggestion-item';
-            
+
             const title = document.createElement('span');
             title.className = 'suggestion-title';
             title.textContent = m.val;
-            
+
             const subtitle = document.createElement('span');
             subtitle.className = 'suggestion-subtitle';
             subtitle.textContent = m.desc ? `Descripción: ${m.desc}...` : '';
@@ -494,7 +478,7 @@ class InventarioApp extends BaseUploader {
             item.onclick = () => {
                 this.manualSearchInput.value = m.val;
                 this.activeSearchTerm = m.val;
-                this.clearSearchInputBtn.style.display = 'flex'; 
+                this.clearSearchInputBtn.style.display = 'flex';
                 this.searchSuggestions.classList.remove('active');
                 this.manualSearch();
             };
@@ -512,7 +496,7 @@ class InventarioApp extends BaseUploader {
             return;
         }
         const found = this.searchInData(term);
-        if (!found) this.showNotification(`No se encontraron coincidencias`, 'error');
+        if (!found) this.showNotification('No se encontraron coincidencias', 'error');
     }
 
     processBarcode(code) {
@@ -520,7 +504,7 @@ class InventarioApp extends BaseUploader {
             this.updateScanStatus('error', 'Carga un archivo primero');
             return;
         }
-        
+
         if (this.currentOpenResultRow) {
             this.currentOpenResultRow.remove();
             this.currentOpenResultRow = null;
@@ -528,9 +512,9 @@ class InventarioApp extends BaseUploader {
 
         this.activeSearchTerm = code;
         this.manualSearchInput.value = code;
-        this.clearSearchInputBtn.style.display = 'flex'; 
+        this.clearSearchInputBtn.style.display = 'flex';
         this.searchSuggestions.classList.remove('active');
-        
+
         const found = this.searchInData(code);
         if (found) {
             this.updateScanStatus('success', `Encontrado: ${code}`);
@@ -553,18 +537,15 @@ class InventarioApp extends BaseUploader {
         }
 
         const termLower = term.toLowerCase();
-        
         let foundRow = -1;
         let foundCol = -1;
 
         for (let i = 1; i < data.length; i++) {
-            if (!this.checkRowFilters(data[i])) continue; 
-
+            if (!this.checkRowFilters(data[i])) continue;
             for (let j = 0; j < headers.length; j++) {
                 const raw = data[i][j];
                 if (raw === undefined || raw === null) continue;
                 const v = raw.toString().trim();
-
                 if (v.toLowerCase().includes(termLower)) {
                     foundRow = i;
                     foundCol = j;
@@ -588,7 +569,6 @@ class InventarioApp extends BaseUploader {
         if (this.lastHighlightedRow && this.lastHighlightedRow.id === `fila-${dataRowIndex}`) {
             return;
         }
-        
         if (this.lastHighlightedRow) this.lastHighlightedRow.classList.remove('highlighted');
         const row = document.getElementById(`fila-${dataRowIndex}`);
         if (!row) return;
@@ -616,7 +596,7 @@ class InventarioApp extends BaseUploader {
 
         let qtyColIndex = -1;
         const qtyKeywords = ['existencia', 'cantidad', 'stock', 'qty', 'unidades'];
-        
+
         for (let i = 0; i < headers.length; i++) {
             const headerLower = headers[i].toLowerCase();
             if (qtyKeywords.some(kw => headerLower.includes(kw))) {
@@ -627,7 +607,7 @@ class InventarioApp extends BaseUploader {
 
         const resultTr = document.createElement('tr');
         resultTr.className = 'inline-result-row';
-        
+
         const td = document.createElement('td');
         td.colSpan = headers.length + 1;
 
@@ -637,7 +617,7 @@ class InventarioApp extends BaseUploader {
         const headerDiv = document.createElement('div');
         headerDiv.className = 'inline-result-header';
         headerDiv.innerHTML = `<span>Resultado de Búsqueda</span> <button class="close-btn" style="font-size:1.2rem;">&times;</button>`;
-        
+
         headerDiv.querySelector('.close-btn').onclick = (e) => {
             e.stopPropagation();
             resultTr.remove();
@@ -670,7 +650,7 @@ class InventarioApp extends BaseUploader {
             cell.dataset.colIndex = colIdx;
             const raw = rowData[colIdx];
             const txt = raw !== undefined && raw !== null ? raw.toString() : '';
-            
+
             if (term && txt.toLowerCase().includes(term.toLowerCase()) && txt !== '') {
                 const regex = new RegExp(`(${term})`, 'gi');
                 cell.innerHTML = txt.replace(regex, '<span class="match-highlight">$1</span>');
@@ -680,15 +660,15 @@ class InventarioApp extends BaseUploader {
 
             if (colIdx === qtyColIndex) {
                 cell.classList.add('editable-quantity');
-                cell.innerHTML = ''; 
-                
+                cell.innerHTML = '';
+
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.value = txt;
                 input.className = 'qty-input';
-                input.setAttribute('inputmode', 'decimal'); 
+                input.setAttribute('inputmode', 'decimal');
                 input.setAttribute('pattern', '[0-9]*');
-                
+
                 let barcodeBuffer = '';
                 let barcodeTimeout = null;
 
@@ -696,13 +676,13 @@ class InventarioApp extends BaseUploader {
                     barcodeBuffer += e.data || '';
                     clearTimeout(barcodeTimeout);
                     barcodeTimeout = setTimeout(() => {
-                        barcodeBuffer = ''; 
+                        barcodeBuffer = '';
                     }, 200);
 
-                    if (barcodeBuffer.length >= 5) { 
+                    if (barcodeBuffer.length >= 5) {
                         const scannedCode = barcodeBuffer;
                         barcodeBuffer = '';
-                        input.value = txt; 
+                        input.value = txt;
                         setTimeout(() => {
                             this.processBarcode(scannedCode);
                         }, 50);
@@ -785,7 +765,6 @@ class InventarioApp extends BaseUploader {
 
         setTimeout(() => {
             this.scrollToResultBlock(targetRow, resultTr);
-            
             if (qtyInputReference) {
                 setTimeout(() => {
                     qtyInputReference.focus({ preventScroll: true });
@@ -802,17 +781,17 @@ class InventarioApp extends BaseUploader {
         if (!scrollContainer) return;
 
         const rowTop = rowElement.offsetTop;
-        const targetScroll = rowTop - 10; 
-        
-        scrollContainer.scrollTo({ 
-            top: Math.max(0, targetScroll), 
-            behavior: 'smooth' 
+        const targetScroll = rowTop - 10;
+
+        scrollContainer.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth'
         });
 
         setTimeout(() => {
             const containerRect = scrollContainer.getBoundingClientRect();
             const viewportHeight = window.innerHeight;
-            
+
             if (containerRect.top < 0 || containerRect.bottom > viewportHeight) {
                 const offset = containerRect.top - (viewportHeight / 2) + (containerRect.height / 2);
                 window.scrollBy({ top: offset, behavior: 'smooth' });
@@ -823,24 +802,23 @@ class InventarioApp extends BaseUploader {
     confirmQuantityEdit(cell, input, rowIndex, colIdx) {
         const nuevoValor = input.value.trim();
         const data = this.currentData[this.currentSheet];
-        
+
         cell.innerHTML = nuevoValor;
 
         if (data && data[rowIndex]) {
             const valorAnterior = data[rowIndex][colIdx] !== undefined && data[rowIndex][colIdx] !== null ? data[rowIndex][colIdx].toString() : '';
-            
+
             if (valorAnterior !== nuevoValor) {
                 data[rowIndex][colIdx] = nuevoValor;
-                
+
                 const mainRow = document.getElementById(`fila-${rowIndex}`);
                 if (mainRow) {
                     const mainCell = mainRow.querySelector(`td[data-col-index="${colIdx}"]`);
                     if (mainCell) mainCell.textContent = nuevoValor;
-                    
                     mainRow.classList.add('highlighted');
                     this.lastHighlightedRow = mainRow;
                 }
-                
+
                 this.registrarCambio(rowIndex, colIdx, valorAnterior, nuevoValor);
                 this.showNotification('Cantidad actualizada', 'success');
             }
@@ -856,7 +834,7 @@ class InventarioApp extends BaseUploader {
         }
 
         this.refocusBarcode();
-        
+
         if (this.lastHighlightedRow) {
             setTimeout(() => {
                 this.lastHighlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -878,7 +856,7 @@ class InventarioApp extends BaseUploader {
         }
 
         this.refocusBarcode();
-        
+
         if (this.lastHighlightedRow) {
             setTimeout(() => {
                 this.lastHighlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -889,7 +867,7 @@ class InventarioApp extends BaseUploader {
     clearSearch() {
         this.activeSearchTerm = '';
         this.manualSearchInput.value = '';
-        this.clearSearchInputBtn.style.display = 'none'; 
+        this.clearSearchInputBtn.style.display = 'none';
         this.searchSuggestions.classList.remove('active');
         if (this.lastHighlightedRow) {
             this.lastHighlightedRow.classList.remove('highlighted');
@@ -934,7 +912,7 @@ class InventarioApp extends BaseUploader {
         if (!tbody) return;
 
         tbody.innerHTML = '';
-        
+
         if (this.historialCambios.length > 0) {
             badge.textContent = this.historialCambios.length;
             badge.style.display = 'inline-block';
@@ -944,7 +922,7 @@ class InventarioApp extends BaseUploader {
 
         this.historialCambios.forEach((cambio) => {
             const tr = document.createElement('tr');
-            
+
             tr.addEventListener('click', (e) => {
                 if (e.target.closest('.btn-eliminar-cambio')) return;
                 document.querySelectorAll('#tableCambiosBody tr').forEach(r => r.classList.remove('selected-row'));
@@ -993,9 +971,9 @@ class InventarioApp extends BaseUploader {
         const producto = data[rowIndex];
         const contenedor = document.getElementById('detallesProducto');
         const grid = document.getElementById('detallesGrid');
-        
+
         grid.innerHTML = '';
-        
+
         headers.forEach((header, idx) => {
             const item = document.createElement('div');
             item.className = 'detalles-item';
@@ -1021,7 +999,7 @@ class InventarioApp extends BaseUploader {
 
         if (data && data[cambio.fila]) {
             data[cambio.fila][cambio.columnaIdx] = cambio.anterior;
-            this.renderTable(); 
+            this.renderTable();
 
             const detalleContainer = document.getElementById('detallesProducto');
             if (detalleContainer.classList.contains('visible')) {
@@ -1035,21 +1013,21 @@ class InventarioApp extends BaseUploader {
 
     exportToCSV() {
         if (!this.currentData[this.currentSheet]) { this.showNotification('No hay datos para exportar', 'error'); return; }
-        
+
         const data = this.currentData[this.currentSheet];
-        
+
         const csv = '\uFEFF' + data.map(row => row.map(cell => {
             const v = cell !== undefined && cell !== null ? cell.toString() : '';
             return (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : v;
         }).join(',')).join('\r\n');
-        
+
         const name = this.generarNombreArchivo('csv');
         this.descargarBlob(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), name);
     }
 
     exportToXLSX() {
         if (!this.currentData[this.currentSheet]) { this.showNotification('No hay datos para exportar', 'error'); return; }
-        
+
         const data = this.currentData[this.currentSheet];
 
         const ws = XLSX.utils.aoa_to_sheet(data);
@@ -1062,8 +1040,8 @@ class InventarioApp extends BaseUploader {
 
     generarNombreArchivo(ext) {
         const now = new Date();
-        const f = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        const h = `${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+        const f = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const h = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
         const base = (this.currentFileName || 'inventario').replace(/\.[^/.]+$/, '');
         return `${base}_${this.currentSheet}_${f}_${h}.${ext}`;
     }
@@ -1084,7 +1062,7 @@ class InventarioApp extends BaseUploader {
         this.historialCambios = []; this.columnFilters = {}; this.activeSearchTerm = '';
         this.menuOpenForCol = -1;
         this.currentOpenResultRow = null;
-        
+
         this.actualizarVistaCambios();
         document.getElementById('detallesProducto').classList.remove('visible');
 

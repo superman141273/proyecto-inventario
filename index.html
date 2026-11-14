@@ -14,11 +14,10 @@
         </header>
 
         <main>
-            <!-- Zona de carga de archivos simplificada -->
             <div class="upload-container">
                 <div class="upload-area" id="dropZone">
-                    <h3><b>Selecciona o Arrastra tu archivo aquí</b></h3>
-                    <label for="fileInput" class="file-btn">Seleccionar archivo <em>(Formatos Compatibles .xlsx, .xls, .csv)</em></label>
+                    <h3>Arrastra tu archivo de inventario aquí</h3>
+                    <label for="fileInput" class="file-btn">Seleccionar archivo (.xlsx, .xls, .csv)</label>
                     <input type="file" id="fileInput" accept=".xlsx,.csv,.xls" hidden>
                 </div>
 
@@ -27,16 +26,13 @@
                 </div>
             </div>
 
-            <!-- Hojas disponibles (Pestañas de Excel) -->
             <div class="sheets-container" id="sheetsContainer" style="display: none;">
                 <h3>Hojas disponibles:</h3>
                 <div class="sheets-buttons" id="sheetsButtons"></div>
             </div>
 
-            <!-- Contenedor Principal de la Tabla -->
             <div class="content-container" id="contentContainer" style="display: none;">
                 
-                <!-- PESTAÑAS PRINCIPALES -->
                 <div class="tabs">
                     <button class="tab-btn active" id="tabInventario" data-target="viewInventario">
                         Inventario
@@ -46,21 +42,16 @@
                     </button>
                 </div>
 
-                <!-- VISTA 1: INVENTARIO -->
                 <div id="viewInventario" class="tab-content active">
                     <div class="table-header">
                         <h3>Inventario: <span id="sheetName"></span></h3>
                         <div class="table-info" id="tableInfo"></div>
                         
-                        <!-- ZONA DE BÚSQUEDA MANUAL -->
                         <div class="search-controls">
                             <div class="search-row">
                                 <div class="search-input-container">
                                     <input type="text" id="manualSearch" placeholder="Buscar producto..." enterkeyhint="search" autocomplete="off">
-                                    
-                                    <!-- ⭐ La X ahora es un simple span (texto) para evitar estilos de botón -->
-                                    <span id="clearSearchInputBtn" class="clear-input-btn" style="display: none;" title="Limpiar búsqueda">&times;</span>
-                                    
+                                    <button type="button" id="clearSearchInputBtn" class="clear-input-btn" style="display: none;" title="Limpiar búsqueda">&times;</button>
                                     <div id="searchSuggestions" class="search-suggestions"></div>
                                 </div>
                                 <button id="searchButton" type="button">Buscar</button>
@@ -78,7 +69,6 @@
                     </div>
                 </div>
 
-                <!-- VISTA 2: CAMBIOS REALIZADOS -->
                 <div id="viewCambios" class="tab-content" style="display: none;">
                     <div class="table-header">
                         <h3>Historial de Cambios</h3>
@@ -101,14 +91,12 @@
                         </div>
                     </div>
                     
-                    <!-- PANEL DE DETALLES DEL PRODUCTO -->
                     <div class="detalles-producto-container" id="detallesProducto">
                         <h3 class="detalles-title" id="detallesTitle">Detalles del Producto</h3>
                         <div class="detalles-grid" id="detallesGrid"></div>
                     </div>
                 </div>
 
-                <!-- BOTONES DE CONTROL -->
                 <div class="table-controls-container">
                     <div class="table-controls">
                         <button class="control-btn" id="exportButton" type="button">Exportar CSV</button>
@@ -121,14 +109,11 @@
         </main>
     </div>
 
-    <!-- Input oculto con inputmode="none" para que NO abra el teclado virtual en móviles -->
     <input type="text" id="barcodeInput" class="barcode-input" autocomplete="off" inputmode="none">
 
-    <!-- Librerías locales -->
     <script src="libs/xlsx.full.min.js"></script>
     <script src="libs/papaparse.min.js"></script>
 
-    <!-- Módulos de la aplicación -->
     <script src="js/file-uploader.js"></script>
     <script src="js/barcode.js"></script>
     <script src="js/crud.js"></script>
