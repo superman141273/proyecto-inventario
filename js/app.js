@@ -21,7 +21,7 @@ class InventarioApp extends BaseUploader {
         this.crud = new CrudManager(this);
         this.intentarRecuperarLocalStorage();
         
-        this.initKeyboardDetector(); // ⭐ Inicializar detector de teclado
+        this.initKeyboardDetector();
     }
 
     cacheDOM() {
@@ -97,12 +97,10 @@ class InventarioApp extends BaseUploader {
         document.getElementById('tabCambios').addEventListener('click', () => this.switchTab('viewCambios'));
     }
 
-    // ⭐ DETECTOR DE TECLADO VIRTUAL EN MÓVILES
     initKeyboardDetector() {
         if (!window.visualViewport) return;
 
         const handleResize = () => {
-            // Si el teclado virtual se abre, el viewport visible se hace más pequeño que la ventana
             const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 150;
             
             if (isKeyboardOpen) {
@@ -778,7 +776,6 @@ class InventarioApp extends BaseUploader {
         }
     }
 
-    // ⭐ SCROLL INTELIGENTE: Empuja el producto a la parte superior visible para que el teclado no lo tape
     scrollToResultBlock(rowElement, resultElement) {
         if (!rowElement || !resultElement) return;
 
@@ -790,13 +787,9 @@ class InventarioApp extends BaseUploader {
         }
 
         const rowTop = rowElement.offsetTop;
-        
-        // ⭐ Alinear el producto a la parte superior del contenedor de scroll (con 20px de margen)
-        // En lugar de centrarlo, lo mandamos arriba para que el espacio de abajo quede libre para el teclado.
         const targetScroll = rowTop - 20; 
         scrollContainer.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
 
-        // Aseguramos que el contenedor principal también sea visible en la ventana
         const containerRect = scrollContainer.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
         const margin = 20;
@@ -849,6 +842,7 @@ class InventarioApp extends BaseUploader {
         this.refocusBarcode();
     }
 
+    // ⭐ CANCELAR: MANTIENE EL RESALTADO
     cancelQuantityEdit(cell, originalValue) {
         cell.innerHTML = originalValue;
         this.showNotification('Edición cancelada', 'warning');
@@ -858,10 +852,7 @@ class InventarioApp extends BaseUploader {
             this.currentOpenResultRow = null;
         }
 
-        if (this.lastHighlightedRow) {
-            this.lastHighlightedRow.classList.remove('highlighted');
-            this.lastHighlightedRow = null;
-        }
+        // Se eliminó el bloque que quitaba la clase 'highlighted' para que la fila siga iluminada
 
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
