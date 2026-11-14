@@ -287,31 +287,35 @@ class InventarioApp extends BaseUploader {
             textSpan.textContent = h;
             container.appendChild(textSpan);
 
-            const filterIcon = document.createElement('span');
-            filterIcon.className = 'filter-icon';
-            filterIcon.textContent = '▼';
-            filterIcon.dataset.colIndex = colIdx;
-            if (this.columnFilters[colIdx]) {
-                filterIcon.classList.add('active');
+            // ⭐ SOLO MOSTRAR FILTRO EN LA PRIMER COLUMNA (ÍNDICE 0)
+            if (colIdx === 0) {
+                const filterIcon = document.createElement('span');
+                filterIcon.className = 'filter-icon';
+                filterIcon.textContent = '▼';
+                filterIcon.dataset.colIndex = colIdx;
+                if (this.columnFilters[colIdx]) {
+                    filterIcon.classList.add('active');
+                }
+
+                filterIcon.onclick = (e) => {
+                    e.stopPropagation();
+                    const existingMenu = document.getElementById('floating-filter-menu');
+                    if (existingMenu && this.menuOpenForCol === colIdx) {
+                        existingMenu.remove();
+                        this.menuOpenForCol = -1;
+                        filterIcon.classList.remove('active');
+                    } else {
+                        if (existingMenu) existingMenu.remove();
+                        document.querySelectorAll('.filter-icon').forEach(icon => icon.classList.remove('active'));
+                        filterIcon.classList.add('active');
+                        this.menuOpenForCol = colIdx;
+                        this.openDropdownFilter(e.currentTarget, colIdx);
+                    }
+                };
+
+                container.appendChild(filterIcon);
             }
 
-            filterIcon.onclick = (e) => {
-                e.stopPropagation();
-                const existingMenu = document.getElementById('floating-filter-menu');
-                if (existingMenu && this.menuOpenForCol === colIdx) {
-                    existingMenu.remove();
-                    this.menuOpenForCol = -1;
-                    filterIcon.classList.remove('active');
-                } else {
-                    if (existingMenu) existingMenu.remove();
-                    document.querySelectorAll('.filter-icon').forEach(icon => icon.classList.remove('active'));
-                    filterIcon.classList.add('active');
-                    this.menuOpenForCol = colIdx;
-                    this.openDropdownFilter(e.currentTarget, colIdx);
-                }
-            };
-
-            container.appendChild(filterIcon);
             th.appendChild(container);
             hr.appendChild(th);
         });
@@ -932,6 +936,11 @@ class InventarioApp extends BaseUploader {
             });
         }
         this.actualizarVistaCambios();
+        
+        const detalleContainer = document.getElementById('detallesProducto');
+        if (detalleContainer.classList.contains('visible')) {
+            this.mostrarDetallesProducto(rowIndex);
+        }
     }
 
     actualizarVistaCambios() {
