@@ -44,18 +44,21 @@ class InventarioApp extends BaseUploader {
 
     initEventListeners() {
         this.fileBtnLabel.addEventListener('click', (e) => {
+            e.preventDefault();
+            
             if (this.currentFileName) {
                 const confirmar = confirm("¿Seguro que quieres cargar otro archivo? Se perderán los cambios no exportados del archivo actual.");
                 if (confirmar) {
                     this.limpiarInterfaz();
-                } else {
-                    e.preventDefault();
+                    this.fileInput.click();
                 }
+            } else {
+                this.fileInput.click();
             }
         });
 
         this.dropZone.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT') {
+            if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT' && e.target !== this.fileBtnLabel) {
                 if (this.currentFileName) {
                     const confirmar = confirm("¿Seguro que quieres cargar otro archivo? Se perderán los cambios no exportados del archivo actual.");
                     if (confirmar) {
@@ -135,7 +138,6 @@ class InventarioApp extends BaseUploader {
         this.exportButton.addEventListener('click', () => this.exportToCSV());
         this.exportXLSXButton.addEventListener('click', () => this.exportToXLSX());
         document.getElementById('scrollTopButton').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        document.getElementById('resetButton').addEventListener('click', () => this.resetApp());
 
         document.getElementById('tabInventario').addEventListener('click', () => this.switchTab('viewInventario'));
         document.getElementById('tabCambios').addEventListener('click', () => this.switchTab('viewCambios'));
@@ -1102,13 +1104,6 @@ class InventarioApp extends BaseUploader {
         this.dropText.textContent = 'Arrastra tu archivo de inventario aquí';
         this.fileBtnLabel.textContent = 'Seleccionar archivo (.xlsx, .xls, .csv)';
         this.fileBtnLabel.classList.remove('cambiar-archivo');
-    }
-
-    resetApp() {
-        if (!confirm('¿Cerrar el inventario actual? Los cambios no exportados se perderán.')) return;
-        this.fileInput.value = '';
-        this.limpiarInterfaz();
-        this.showNotification('Listo para cargar nuevo archivo', 'success');
     }
 
     showError(msg) {
