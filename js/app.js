@@ -37,7 +37,7 @@ class InventarioApp extends BaseUploader {
         this.tableBody = document.getElementById('tableBody');
         this.manualSearchInput = document.getElementById('manualSearch');
         this.searchSuggestions = document.getElementById('searchSuggestions');
-        this.clearSearchInputBtn = document.getElementById('clearSearchInputBtn'); // ⭐ Nuevo botón X
+        this.clearSearchInputBtn = document.getElementById('clearSearchInputBtn'); // ⭐ Botón X
         
         this.exportButton = document.getElementById('exportButton');
         this.exportXLSXButton = document.getElementById('exportXLSXButton');

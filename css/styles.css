@@ -59,7 +59,7 @@ main { padding: 2rem; background: #ffffff; }
 }
 
 /* ============================================
-   ESTADO DEL LECTOR (Ahora solo texto oculto, estilos por compatibilidad)
+   ESTADO DEL LECTOR (Oculto visualmente)
    ============================================ */
 .barcode-info { display: none; }
 .scan-status { display: none; }
@@ -113,6 +113,35 @@ main { padding: 2rem; background: #ffffff; }
     font-size: 0.9rem; outline: none; transition: border-color 0.2s; background: #fafaf9;
 }
 .search-input-container input:focus { border-color: #6b21a8; background: #ffffff; box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.15); }
+
+/* ⭐ BOTÓN PARA LIMPIAR LA BÚSQUEDA (X ESTILO MÓVIL) */
+.clear-input-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #78716c;
+    font-size: 1.5rem;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    padding-bottom: 4px;
+}
+
+.clear-input-btn:hover {
+    color: #1c1917;
+}
+
+/* Ajuste para que el texto no quede debajo de la X */
+.search-input-container input {
+    padding-right: 40px !important;
+}
 
 .search-suggestions {
     position: absolute; top: 100%; left: 0; right: 0;
@@ -479,36 +508,4 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
     .upload-area { padding: 1.5rem 1rem; }
     .file-btn { width: 100%; text-align: center; }
     th, td { padding: 6px 8px; font-size: 0.75rem; min-width: 80px; }
-}
-
-/* ============================================
-   BOTÓN PARA LIMPIAR LA BÚSQUEDA (X)
-   ============================================ */
-.clear-input-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #e7e5e4;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #57534e;
-    font-size: 14px;
-    font-weight: bold;
-    transition: background 0.2s;
-}
-.clear-input-btn:hover {
-    background: #d6d3d1;
-    color: #1c1917;
-}
-
-/* Ajuste para que el texto no choque con la "X" cuando está visible */
-.search-input-container input {
-    padding-right: 32px !important;
 }
