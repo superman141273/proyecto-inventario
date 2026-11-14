@@ -114,36 +114,25 @@ main { padding: 2rem; background: #ffffff; }
 }
 .search-input-container input:focus { border-color: #6b21a8; background: #ffffff; box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.15); }
 
-/* ⭐ BOTÓN PARA LIMPIAR LA BÚSQUEDA (X ESTILO LIMPIO) */
+/* ⭐ BOTÓN X CORREGIDO */
 .clear-input-btn {
     position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 40px;
-    background: transparent;
-    border: none;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a8a29e;
+    font-size: 1.4rem;
     cursor: pointer;
-    color: #a8a29e; /* Gris claro inicial */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s;
+    user-select: none;
+    line-height: 1;
 }
-
-.clear-input-btn svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-}
-
 .clear-input-btn:hover {
-    color: #dc2626; /* Se pone rojo al pasar el ratón */
+    color: #dc2626;
 }
 
 /* Ajuste para que el texto no quede debajo de la X */
 .search-input-container input {
-    padding-right: 40px !important;
+    padding-right: 35px !important;
 }
 
 .search-suggestions {
@@ -161,11 +150,12 @@ main { padding: 2rem; background: #ffffff; }
 .suggestion-title { font-weight: 600; color: #1c1917; font-size: 0.85rem; }
 .suggestion-subtitle { font-size: 0.75rem; color: #78716c; }
 
-.search-row button {
+/* El botón de BUSCAR, sin afectar a la X */
+.search-row > button {
     background: #1c1917; color: white; border: 1px solid #000000; padding: 8px 16px;
     border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
 }
-.search-row button:hover { background: #000000; }
+.search-row > button:hover { background: #000000; }
 
 /* ============================================
    TABLAS Y BOTÓN DE FILTRO (Cabeceras)
@@ -496,7 +486,7 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
     .sheet-btn { width: 100%; }
     .search-row { flex-direction: column; align-items: stretch; }
     .search-input-container { width: 100%; }
-    .search-row input, .search-row button { width: 100%; font-size: 16px; padding: 10px; }
+    .search-row input, .search-row > button { width: 100%; font-size: 16px; padding: 10px; }
     .table-scroll { max-height: 50vh; }
     body.keyboard-open .table-scroll { max-height: 25vh; }
     .detalles-grid { grid-template-columns: 1fr; }
