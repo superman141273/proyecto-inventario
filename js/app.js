@@ -19,9 +19,14 @@ class InventarioApp extends BaseUploader {
         this.initEventListeners();
         this.barcodeReader = new BarcodeReader(this);
         this.crud = new CrudManager(this);
-        this.intentarRecuperarLocalStorage();
         
         this.initKeyboardDetector();
+
+        // ⭐ RETRASO DE SEGURIDAD: Esperamos 100ms para que el navegador 
+        // termine de dibujar la página antes de intentar recuperar los datos.
+        setTimeout(() => {
+            this.intentarRecuperarLocalStorage();
+        }, 100);
     }
 
     cacheDOM() {
@@ -784,32 +789,25 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
-        // ⭐ Un pequeño retraso para asegurar que el navegador ya pintó el panel
         setTimeout(() => {
             this.scrollToResultBlock(targetRow, resultTr);
             
-            // Enfocar el input después del scroll
             if (qtyInputReference) {
                 setTimeout(() => {
                     qtyInputReference.focus({ preventScroll: true });
                     qtyInputReference.select();
                 }, 100);
             }
-        }, 100); // Aumentado a 100ms para dar tiempo al renderizado
+        }, 100);
     }
 
-    // ⭐ SCROLL QUIRÚRGICO: Alinea la fila arriba y asegura que se vea el panel
     scrollToResultBlock(rowElement, resultElement) {
         if (!rowElement || !resultElement) return;
 
         const scrollContainer = rowElement.closest('.table-scroll');
         if (!scrollContainer) return;
 
-        // Calculamos la posición de la fila respecto al contenedor de scroll
         const rowTop = rowElement.offsetTop;
-        
-        // Hacemos scroll para que la fila quede a 10px del borde superior del contenedor
-        // Esto deja todo el espacio de abajo libre para el panel de edición
         const targetScroll = rowTop - 10; 
         
         scrollContainer.scrollTo({ 
@@ -817,15 +815,11 @@ class InventarioApp extends BaseUploader {
             behavior: 'smooth' 
         });
 
-        // Adicionalmente, si el contenedor de scroll está fuera de la vista de la ventana,
-        // hacemos un scroll en la ventana principal para que la tabla sea visible.
         setTimeout(() => {
             const containerRect = scrollContainer.getBoundingClientRect();
             const viewportHeight = window.innerHeight;
             
-            // Si el contenedor se sale por arriba o por abajo de la pantalla
             if (containerRect.top < 0 || containerRect.bottom > viewportHeight) {
-                // Calculamos para centrar el contenedor en la pantalla
                 const offset = containerRect.top - (viewportHeight / 2) + (containerRect.height / 2);
                 window.scrollBy({ top: offset, behavior: 'smooth' });
             }
