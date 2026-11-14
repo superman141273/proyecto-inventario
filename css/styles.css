@@ -130,7 +130,11 @@ main { padding: 2rem; background: #f8fafc; }
 
 .table-container { overflow: visible; border: 2px solid #8c6e54; border-radius: 2px; background: #ffffff; }
 .table-scroll { max-height: 60vh; overflow: auto; border-radius: 2px; transition: max-height 0.3s ease; touch-action: pan-y pan-x; }
-body.keyboard-open .table-scroll { max-height: 30vh; }
+
+/* 
+   ⭐ ELIMINADO EL body.keyboard-open QUE ENCOGÍA LA TABLA
+   Esto permite hacer scroll libremente incluso con el teclado abierto.
+*/
 
 table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; min-width: 100%; }
 
@@ -220,7 +224,7 @@ table, thead, tbody, tr, th, td, button, .table-scroll, .row-actions button {
     width: 100%; padding: 6px; border: 2px solid #7e22ce; border-radius: 4px;
     font-size: 1rem; font-weight: bold; color: #27272a; background: #ffffff;
     outline: none; text-align: center;
-    touch-action: pan-y;
+    touch-action: pan-y; /* Permite el scroll vertical tocando el input */
 }
 .qty-input:focus { box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.3); }
 td.editable-quantity { background-color: #fef9c3 !important; padding: 4px !important; }
@@ -252,8 +256,6 @@ td.editable-quantity { background-color: #fef9c3 !important; padding: 4px !impor
 #exportButton:hover, #exportXLSXButton:hover { background: #6b21a8; }
 #scrollTopButton { background: #eadcd2; color: #5c4a3d; border-color: #d1bfae; }
 #scrollTopButton:hover { background: #d1bfae; }
-#resetButton { background: #4a3b32; color: white; border-color: #2e241e; }
-#resetButton:hover { background: #2e241e; }
 
 #tableCambiosBody tr { cursor: pointer; transition: background 0.2s; }
 #tableCambiosBody tr:hover { background: #f4ece6; }
@@ -322,8 +324,8 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
     .search-input-container { width: 100%; }
     .search-row input, .search-row > button { width: 100%; font-size: 16px; padding: 10px; }
     
-    .table-scroll { max-height: 55vh; }
-    body.keyboard-open .table-scroll { max-height: 25vh; }
+    /* Se eliminó el max-height reducido para que la tabla mantenga su tamaño */
+    .table-scroll { max-height: 65vh; }
     
     .detalles-grid { grid-template-columns: 1fr; }
 
@@ -346,6 +348,7 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
         flex-direction: row;
         gap: 6px;
         justify-content: flex-end;
+        padding-bottom: 20px; /* Margen extra para que el teclado no tape los botones */
     }
 
     .edit-action-btn { padding: 8px 12px; font-size: 0.8rem; }

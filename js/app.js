@@ -287,7 +287,7 @@ class InventarioApp extends BaseUploader {
             textSpan.textContent = h;
             container.appendChild(textSpan);
 
-            // ⭐ SOLO MOSTRAR FILTRO EN LA PRIMER COLUMNA (ÍNDICE 0)
+            // Filtro solo en la primera columna
             if (colIdx === 0) {
                 const filterIcon = document.createElement('span');
                 filterIcon.className = 'filter-icon';
@@ -823,7 +823,17 @@ class InventarioApp extends BaseUploader {
         if (!scrollContainer) return;
 
         const rowTop = rowElement.offsetTop;
-        const targetScroll = rowTop - 10;
+        const resultHeight = resultElement.offsetHeight;
+        const containerHeight = scrollContainer.clientHeight;
+
+        // Intentamos centrar el bloque (fila + resultado) en el contenedor de scroll
+        const blockHeight = rowElement.offsetHeight + resultHeight;
+        let targetScroll = rowTop - 10;
+
+        // Si el bloque es más alto que el contenedor, lo alineamos arriba con margen
+        if (blockHeight > containerHeight) {
+            targetScroll = rowTop - 20;
+        }
 
         scrollContainer.scrollTo({
             top: Math.max(0, targetScroll),
