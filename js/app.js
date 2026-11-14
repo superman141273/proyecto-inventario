@@ -784,43 +784,54 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
-        if (qtyInputReference) {
-            setTimeout(() => {
-                this.scrollToResultBlock(targetRow, resultTr);
-                qtyInputReference.focus({ preventScroll: true });
-                qtyInputReference.select();
-            }, 50);
-        }
+        // ⭐ Un pequeño retraso para asegurar que el navegador ya pintó el panel
+        setTimeout(() => {
+            this.scrollToResultBlock(targetRow, resultTr);
+            
+            // Enfocar el input después del scroll
+            if (qtyInputReference) {
+                setTimeout(() => {
+                    qtyInputReference.focus({ preventScroll: true });
+                    qtyInputReference.select();
+                }, 100);
+            }
+        }, 100); // Aumentado a 100ms para dar tiempo al renderizado
     }
 
+    // ⭐ SCROLL QUIRÚRGICO: Alinea la fila arriba y asegura que se vea el panel
     scrollToResultBlock(rowElement, resultElement) {
         if (!rowElement || !resultElement) return;
 
         const scrollContainer = rowElement.closest('.table-scroll');
-        if (!scrollContainer) {
-            const rect = rowElement.getBoundingClientRect();
-            window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'smooth' });
-            return;
-        }
+        if (!scrollContainer) return;
 
+        // Calculamos la posición de la fila respecto al contenedor de scroll
         const rowTop = rowElement.offsetTop;
-        const targetScroll = rowTop - 20; 
-        scrollContainer.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+        
+        // Hacemos scroll para que la fila quede a 10px del borde superior del contenedor
+        // Esto deja todo el espacio de abajo libre para el panel de edición
+        const targetScroll = rowTop - 10; 
+        
+        scrollContainer.scrollTo({ 
+            top: Math.max(0, targetScroll), 
+            behavior: 'smooth' 
+        });
 
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const margin = 20;
-
-        if (containerRect.top < margin) {
-            const delta = containerRect.top - margin;
-            window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
-        } else if (containerRect.bottom > viewportHeight - margin) {
-            const delta = containerRect.bottom - (viewportHeight - margin);
-            window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
-        }
+        // Adicionalmente, si el contenedor de scroll está fuera de la vista de la ventana,
+        // hacemos un scroll en la ventana principal para que la tabla sea visible.
+        setTimeout(() => {
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            // Si el contenedor se sale por arriba o por abajo de la pantalla
+            if (containerRect.top < 0 || containerRect.bottom > viewportHeight) {
+                // Calculamos para centrar el contenedor en la pantalla
+                const offset = containerRect.top - (viewportHeight / 2) + (containerRect.height / 2);
+                window.scrollBy({ top: offset, behavior: 'smooth' });
+            }
+        }, 50);
     }
 
-    // ⭐ CONFIRMAR: CENTRA LA FILA AL CERRAR EL RESULTADO
     confirmQuantityEdit(cell, input, rowIndex, colIdx) {
         const nuevoValor = input.value.trim();
         const data = this.currentData[this.currentSheet];
@@ -859,7 +870,6 @@ class InventarioApp extends BaseUploader {
 
         this.refocusBarcode();
         
-        // ⭐ Aseguramos que la fila resaltada quede visible y centrada tras cerrar el panel
         if (this.lastHighlightedRow) {
             setTimeout(() => {
                 this.lastHighlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -867,7 +877,6 @@ class InventarioApp extends BaseUploader {
         }
     }
 
-    // ⭐ CANCELAR: CENTRA LA FILA AL CERRAR EL RESULTADO
     cancelQuantityEdit(cell, originalValue) {
         cell.innerHTML = originalValue;
         this.showNotification('Edición cancelada', 'warning');
@@ -883,7 +892,6 @@ class InventarioApp extends BaseUploader {
 
         this.refocusBarcode();
         
-        // ⭐ Aseguramos que la fila resaltada quede visible y centrada tras cerrar el panel
         if (this.lastHighlightedRow) {
             setTimeout(() => {
                 this.lastHighlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
