@@ -20,6 +20,8 @@ class InventarioApp extends BaseUploader {
         this.barcodeReader = new BarcodeReader(this);
         this.crud = new CrudManager(this);
         this.intentarRecuperarLocalStorage();
+        
+        this.initKeyboardDetector(); // ⭐ Inicializar detector de teclado
     }
 
     cacheDOM() {
@@ -93,6 +95,25 @@ class InventarioApp extends BaseUploader {
 
         document.getElementById('tabInventario').addEventListener('click', () => this.switchTab('viewInventario'));
         document.getElementById('tabCambios').addEventListener('click', () => this.switchTab('viewCambios'));
+    }
+
+    // ⭐ DETECTOR DE TECLADO VIRTUAL EN MÓVILES
+    initKeyboardDetector() {
+        if (!window.visualViewport) return;
+
+        const handleResize = () => {
+            // Si el teclado virtual se abre, el viewport visible se hace más pequeño que la ventana
+            const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 150;
+            
+            if (isKeyboardOpen) {
+                document.body.classList.add('keyboard-open');
+            } else {
+                document.body.classList.remove('keyboard-open');
+            }
+        };
+
+        window.visualViewport.addEventListener('resize', handleResize);
+        window.visualViewport.addEventListener('scroll', handleResize);
     }
 
     switchTab(targetId) {
@@ -654,25 +675,20 @@ class InventarioApp extends BaseUploader {
                 input.setAttribute('inputmode', 'decimal'); 
                 input.setAttribute('pattern', '[0-9]*');
                 
-                // ⭐ DETECCIÓN DE ESCÁNER EN EL INPUT
                 let barcodeBuffer = '';
                 let barcodeTimeout = null;
 
                 input.addEventListener('input', (e) => {
-                    // Si el valor contiene muchas letras o cambió drásticamente, podría ser un escáner
-                    // Pero un escáner escribe muy rápido. Usamos un timer.
                     barcodeBuffer += e.data || '';
-                    
                     clearTimeout(barcodeTimeout);
                     barcodeTimeout = setTimeout(() => {
-                        barcodeBuffer = ''; // Resetear si pasan 200ms sin escribir
+                        barcodeBuffer = ''; 
                     }, 200);
 
-                    if (barcodeBuffer.length >= 5) { // Si acumuló 5 caracteres en menos de 200ms, es escáner
+                    if (barcodeBuffer.length >= 5) { 
                         const scannedCode = barcodeBuffer;
                         barcodeBuffer = '';
-                        input.value = txt; // Restaurar valor original
-                        // Ejecutar búsqueda
+                        input.value = txt; 
                         setTimeout(() => {
                             this.processBarcode(scannedCode);
                         }, 50);
@@ -762,6 +778,7 @@ class InventarioApp extends BaseUploader {
         }
     }
 
+    // ⭐ SCROLL INTELIGENTE: Empuja el producto a la parte superior visible para que el teclado no lo tape
     scrollToResultBlock(rowElement, resultElement) {
         if (!rowElement || !resultElement) return;
 
@@ -773,33 +790,22 @@ class InventarioApp extends BaseUploader {
         }
 
         const rowTop = rowElement.offsetTop;
-        const rowHeight = rowElement.offsetHeight;
-        const resultHeight = resultElement.offsetHeight;
-        const blockHeight = rowHeight + resultHeight;
-
-        const containerHeight = scrollContainer.clientHeight;
-
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-
-        if (blockHeight >= containerHeight) {
-            const targetScroll = rowTop - 20;
-            scrollContainer.scrollTo({ top: targetScroll, behavior: 'smooth' });
-            return;
-        }
-
-        const targetScroll = rowTop - (containerHeight - blockHeight) / 2;
+        
+        // ⭐ Alinear el producto a la parte superior del contenedor de scroll (con 20px de margen)
+        // En lugar de centrarlo, lo mandamos arriba para que el espacio de abajo quede libre para el teclado.
+        const targetScroll = rowTop - 20; 
         scrollContainer.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
 
-        const containerTop = containerRect.top;
-        const containerBottom = containerRect.bottom;
+        // Aseguramos que el contenedor principal también sea visible en la ventana
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
         const margin = 20;
 
-        if (containerTop < margin) {
-            const delta = containerTop - margin;
+        if (containerRect.top < margin) {
+            const delta = containerRect.top - margin;
             window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
-        } else if (containerBottom > viewportHeight - margin) {
-            const delta = containerBottom - (viewportHeight - margin);
+        } else if (containerRect.bottom > viewportHeight - margin) {
+            const delta = containerRect.bottom - (viewportHeight - margin);
             window.scrollTo({ top: window.scrollY + delta, behavior: 'smooth' });
         }
     }
