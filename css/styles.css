@@ -114,7 +114,7 @@ main { padding: 2rem; background: #ffffff; }
 }
 .search-input-container input:focus { border-color: #6b21a8; background: #ffffff; box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.15); }
 
-/* ⭐ BOTÓN PARA LIMPIAR LA BÚSQUEDA (X ESTILO MÓVIL) */
+/* ⭐ BOTÓN PARA LIMPIAR LA BÚSQUEDA (X ESTILO LIMPIO) */
 .clear-input-btn {
     position: absolute;
     right: 0;
@@ -124,18 +124,21 @@ main { padding: 2rem; background: #ffffff; }
     background: transparent;
     border: none;
     cursor: pointer;
-    color: #78716c;
-    font-size: 1.5rem;
-    font-weight: normal;
+    color: #a8a29e; /* Gris claro inicial */
     display: flex;
     align-items: center;
     justify-content: center;
     transition: color 0.2s;
-    padding-bottom: 4px;
+}
+
+.clear-input-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
 }
 
 .clear-input-btn:hover {
-    color: #1c1917;
+    color: #dc2626; /* Se pone rojo al pasar el ratón */
 }
 
 /* Ajuste para que el texto no quede debajo de la X */
