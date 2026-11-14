@@ -143,10 +143,16 @@ class InventarioApp extends BaseUploader {
         document.getElementById('tabInventario').addEventListener('click', () => this.switchTab('viewInventario'));
         document.getElementById('tabCambios').addEventListener('click', () => this.switchTab('viewCambios'));
 
-        // ⭐ LISTENER PARA CERRAR EL PANEL DE DETALLES
+        // Listener para cerrar detalles y hacer scroll de vuelta a la tabla de cambios
         if (this.closeDetallesBtn) {
             this.closeDetallesBtn.addEventListener('click', () => {
-                document.getElementById('detallesProducto').classList.remove('visible');
+                const detalleContainer = document.getElementById('detallesProducto');
+                detalleContainer.classList.remove('visible');
+                
+                const tableCambiosContainer = document.getElementById('tableCambiosContainer');
+                if (tableCambiosContainer) {
+                    tableCambiosContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             });
         }
     }
@@ -1015,6 +1021,7 @@ class InventarioApp extends BaseUploader {
         });
     }
 
+    // ⭐ SE AGREGA EL SCROLL HACIA EL PANEL DE DETALLES AL SELECCIONAR UN CAMBIO
     mostrarDetallesProducto(rowIndex) {
         const data = this.currentData[this.currentSheet];
         const headers = this.currentHeaders[this.currentSheet];
@@ -1040,6 +1047,11 @@ class InventarioApp extends BaseUploader {
             grid.appendChild(item);
         });
         contenedor.classList.add('visible');
+
+        // Desplazar suavemente hacia el recuadro de detalles
+        setTimeout(() => {
+            contenedor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     }
 
     deshacerCambio(idCambio) {
