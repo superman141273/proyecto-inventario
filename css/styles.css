@@ -36,48 +36,37 @@ main { padding: 2rem; background: #ffffff; }
 /* ============================================
    ZONA DE CARGA
    ============================================ */
-.upload-container { text-align: center; margin-bottom: 2rem; }
+.upload-container { text-align: center; margin-bottom: 1.5rem; }
 .upload-area {
-    border: 2px dashed #78716c; border-radius: 6px; padding: 2rem; margin: 1rem 0 2rem 0;
+    border: 2px dashed #78716c; border-radius: 6px; padding: 2.5rem 2rem; margin: 1rem 0 1.5rem 0;
     cursor: pointer; transition: all 0.2s ease; background: #f4f4f2; 
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
 }
 .upload-area:hover { border-color: #6b21a8; background: #f3e8ff; }
 .upload-area.dragover { border-color: #4c1d95; background: #e9d5ff; }
-.upload-icon { margin-bottom: 0.5rem; color: #6b21a8; }
+.upload-area h3 { color: #1c1917; font-size: 1.1rem; font-weight: 600; }
 
 .file-btn {
-    display: inline-block; background: #6b21a8; color: white; padding: 8px 20px;
-    border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
-    transition: background 0.2s; margin: 0.5rem 0; border: 1px solid #581c87;
+    display: inline-block; background: #6b21a8; color: white; padding: 10px 24px;
+    border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.95rem;
+    transition: background 0.2s; border: 1px solid #581c87;
 }
 .file-btn:hover { background: #581c87; }
 
 .file-info {
-    background: #f0eeec; padding: 1rem; border-radius: 6px; margin: 1rem 0;
+    background: #f0eeec; padding: 1rem; border-radius: 6px;
     border: 2px solid #d6d3d1; color: #44403c; font-size: 0.9rem;
 }
 
-.supported-formats { margin: 1.5rem 0; }
-.formats-list { display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
-.format-badge { background: #e7e5e4; color: #44403c; border: 1px solid #a8a29e; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem; }
-
 /* ============================================
-   ESTADO DEL LECTOR
+   ESTADO DEL LECTOR (Ahora solo texto oculto, estilos por compatibilidad)
    ============================================ */
-.barcode-info {
-    background: #f0eeec; padding: 1.25rem; border-radius: 6px; margin: 1rem 0;
-    border: 2px solid #d6d3d1; border-left: 5px solid #1c1917; text-align: left;
-}
-.barcode-info h4 { color: #1c1917; font-size: 0.95rem; margin-bottom: 0.25rem; }
-.barcode-info p { font-size: 0.85rem; color: #57534e; margin-bottom: 0.5rem; }
-.scan-status {
-    display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #ffffff;
-    border-radius: 4px; font-size: 0.85rem; font-weight: 600; border: 2px solid #a8a29e;
-}
-.status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; }
-.status-success { background: #16a34a !important; }
-.status-scanning { background: #ca8a04 !important; }
-.status-error { background: #dc2626 !important; }
+.barcode-info { display: none; }
+.scan-status { display: none; }
+.status-indicator { display: none; }
+.status-success { display: none; }
+.status-scanning { display: none; }
+.status-error { display: none; }
 
 /* ============================================
    BOTONES DE HOJAS (PESTAÑAS DE EXCEL)
@@ -149,8 +138,6 @@ main { padding: 2rem; background: #ffffff; }
 /* ============================================
    TABLAS Y BOTÓN DE FILTRO (Cabeceras)
    ============================================ */
-/* ⭐ El contenedor exterior ya NO scrollea; solo decoración.
-   El scroll (vertical y horizontal) lo maneja .table-scroll. */
 .table-container { 
     overflow: visible; 
     border: 2px solid #a8a29e; 
@@ -158,21 +145,17 @@ main { padding: 2rem; background: #ffffff; }
     background: white; 
 }
 
-/* ⭐ Único contenedor con scroll: vertical y horizontal */
 .table-scroll { 
     max-height: 60vh; 
     overflow: auto; 
     border-radius: 4px;
-    transition: max-height 0.3s ease; /* Transición suave al abrir el teclado */
+    transition: max-height 0.3s ease;
 }
 
-/* ⭐ Clase que se activa cuando el teclado virtual está abierto */
 body.keyboard-open .table-scroll {
     max-height: 30vh;
 }
 
-/* ⭐ border-collapse: separate es necesario para que position: sticky
-   funcione en el <thead> (bug conocido de Chrome/Edge con collapse). */
 table { 
     width: 100%; 
     border-collapse: separate; 
@@ -246,7 +229,7 @@ td:last-child { border-right: none; }
 .filter-btn-confirm:hover { background: #581c87; }
 
 /* ============================================
-   ⭐ NUEVA FILA DE RESULTADO INTERCALADO
+   NUEVA FILA DE RESULTADO INTERCALADO
    ============================================ */
 .inline-result-row > td {
     padding: 0 !important;
@@ -307,7 +290,6 @@ td:last-child { border-right: none; }
     user-select: none;
 }
 
-/* Estilo para indicar que la celda de cantidad es editable */
 td.editable-quantity {
     background-color: #fef9c3 !important;
     cursor: pointer;
@@ -319,12 +301,10 @@ td.editable-quantity:hover {
     background-color: #fde047 !important;
 }
 
-/* Asegurar que las celdas no editables no muestren el cursor de texto */
 .inline-result-container .result-table td:not(.editable-quantity) {
     cursor: default;
 }
 
-/* Estilo para el campo de entrada de cantidad (Input Numérico) */
 .qty-input {
     width: 100%;
     padding: 8px;
@@ -347,7 +327,7 @@ td.editable-quantity:hover {
 }
 
 /* ============================================
-   ⭐ BOTONES CANCELAR / CONFIRMAR OPTIMIZADOS
+   BOTONES CANCELAR / CONFIRMAR OPTIMIZADOS
    ============================================ */
 .edit-actions-row {
     display: flex;
@@ -467,13 +447,6 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
 .notification-error { background: #dc2626; }
 .notification-warning { background: #ca8a04; }
 
-#downloadInfoPanel { position: fixed; bottom: 20px; right: 20px; background: white; border-radius: 6px; border: 2px solid #a8a29e; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); max-width: 400px; width: calc(100% - 40px); z-index: 1001; border-top: 4px solid #6b21a8; }
-.download-panel-content { padding: 1rem; }
-.download-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.download-panel-header h3 { margin: 0; color: #1c1917; font-size: 1rem; }
-#downloadInfoPanel p { margin: 0.25rem 0; color: #57534e; font-size: 0.85rem; }
-#downloadInfoPanel details { margin-top: 0.75rem; background: #fafaf9; padding: 0.5rem; border-radius: 4px; border: 1px solid #d6d3d1; }
-
 @media (max-width: 768px) {
     body { padding: 10px; }
     header { padding: 1rem; }
@@ -492,10 +465,8 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
     .search-row { flex-direction: column; align-items: stretch; }
     .search-input-container { width: 100%; }
     .search-row input, .search-row button { width: 100%; font-size: 16px; padding: 10px; }
-    /* ⭐ El scroll vertical ahora lo maneja .table-scroll, no .table-container */
     .table-scroll { max-height: 50vh; }
     body.keyboard-open .table-scroll { max-height: 25vh; }
-    #downloadInfoPanel { bottom: 10px; right: 10px; left: 10px; width: auto; }
     .detalles-grid { grid-template-columns: 1fr; }
     .edit-actions-row { gap: 6px; }
     .edit-action-btn { padding: 8px 14px; font-size: 0.8rem; }
@@ -506,5 +477,6 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
     header { padding: 0.75rem; }
     header h1 { font-size: 1.1rem; }
     .upload-area { padding: 1.5rem 1rem; }
+    .file-btn { width: 100%; text-align: center; }
     th, td { padding: 6px 8px; font-size: 0.75rem; min-width: 80px; }
 }

@@ -14,36 +14,16 @@
         </header>
 
         <main>
-            <!-- Zona de carga de archivos -->
+            <!-- Zona de carga de archivos simplificada -->
             <div class="upload-container">
                 <div class="upload-area" id="dropZone">
-                    <div class="upload-icon" style="font-size: 2rem; font-weight: bold; color: #6b21a8;">[+]</div>
-                    <h3>Arrastra tu archivo de inventario aquí</h3>
-                    <p>o</p>
-                    <label for="fileInput" class="file-btn">Seleccionar archivo</label>
+                    <h3><b>Selecciona o Arrastra tu archivo</b></h3>
+                    <label for="fileInput" class="file-btn">Seleccionar Archivo <em>(Formatos Compatibles: .xlsx, .xls, .csv)</em></label>
                     <input type="file" id="fileInput" accept=".xlsx,.csv,.xls" hidden>
                 </div>
 
                 <div class="file-info" id="fileInfo">
                     <p>No se ha seleccionado ningún archivo</p>
-                </div>
-
-                <div class="supported-formats">
-                    <h4>Formatos soportados:</h4>
-                    <div class="formats-list">
-                        <span class="format-badge">.xlsx</span>
-                        <span class="format-badge">.csv</span>
-                        <span class="format-badge">.xls</span>
-                    </div>
-                </div>
-
-                <div class="barcode-info">
-                    <h4>Modo Lector Activado</h4>
-                    <p>Escanea códigos de barras directamente sobre la página</p>
-                    <div class="scan-status" id="scanStatus">
-                        <span class="status-indicator"></span>
-                        Esperando escaneo...
-                    </div>
                 </div>
             </div>
 
