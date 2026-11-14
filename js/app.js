@@ -153,6 +153,14 @@ class InventarioApp extends BaseUploader {
             this.actualizarVistaCambios();
             if (file.name.toLowerCase().endsWith('.csv')) this.processCSV(e.target.result, file.name);
             else this.processExcel(e.target.result, file.name);
+            
+            // ⭐ DESPLAZAMIENTO AUTOMÁTICO HACIA LA TABLA AL CARGAR
+            setTimeout(() => {
+                const tableContainer = document.getElementById('tableContainer');
+                if (tableContainer) {
+                    tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 500); // Un pequeño retraso para asegurar que la tabla ya se pintó
         };
         reader.onerror = () => this.showError('Error al leer el archivo.');
         if (file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file, 'UTF-8');
@@ -566,9 +574,7 @@ class InventarioApp extends BaseUploader {
     }
 
     highlightRow(dataRowIndex) {
-        if (this.lastHighlightedRow && this.lastHighlightedRow.id === `fila-${dataRowIndex}`) {
-            return;
-        }
+        if (this.lastHighlightedRow && this.lastHighlightedRow.id === `fila-${dataRowIndex}`) return;
         if (this.lastHighlightedRow) this.lastHighlightedRow.classList.remove('highlighted');
         const row = document.getElementById(`fila-${dataRowIndex}`);
         if (!row) return;
@@ -614,38 +620,30 @@ class InventarioApp extends BaseUploader {
         const container = document.createElement('div');
         container.className = 'inline-result-container';
 
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'inline-result-header';
-        headerDiv.innerHTML = `<span>Resultado de Búsqueda</span> <button class="close-btn" style="font-size:1.2rem;">&times;</button>`;
-
-        headerDiv.querySelector('.close-btn').onclick = (e) => {
-            e.stopPropagation();
-            resultTr.remove();
-            this.currentOpenResultRow = null;
-        };
-
-        container.appendChild(headerDiv);
-
         const table = document.createElement('table');
         table.className = 'result-table';
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        headers.forEach((h) => {
-            const th = document.createElement('th');
-            th.textContent = h;
-            headerRow.appendChild(th);
+        
+        headers.forEach((h, idx) => {
+            if (h.toLowerCase() !== 'familia') {
+                const th = document.createElement('th');
+                th.textContent = h;
+                headerRow.appendChild(th);
+            }
         });
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
         const tr = document.createElement('tr');
-        tr.dataset.rowIndex = rowIndex;
 
         let qtyInputReference = null;
         let qtyCellReference = null;
 
-        headers.forEach((_, colIdx) => {
+        headers.forEach((h, colIdx) => {
+            if (h.toLowerCase() === 'familia') return;
+
             const cell = document.createElement('td');
             cell.dataset.colIndex = colIdx;
             const raw = rowData[colIdx];
@@ -736,7 +734,7 @@ class InventarioApp extends BaseUploader {
 
             const btnCancel = document.createElement('button');
             btnCancel.className = 'edit-action-btn edit-action-cancel';
-            btnCancel.innerHTML = '✕ Cancelar';
+            btnCancel.innerHTML = '✕';
             btnCancel.onmousedown = (e) => e.preventDefault();
             btnCancel.onclick = (e) => {
                 e.stopPropagation();
@@ -745,7 +743,7 @@ class InventarioApp extends BaseUploader {
 
             const btnConfirm = document.createElement('button');
             btnConfirm.className = 'edit-action-btn edit-action-confirm';
-            btnConfirm.innerHTML = '✓ Confirmar';
+            btnConfirm.innerHTML = '✓';
             btnConfirm.onmousedown = (e) => e.preventDefault();
             btnConfirm.onclick = (e) => {
                 e.stopPropagation();
@@ -787,16 +785,6 @@ class InventarioApp extends BaseUploader {
             top: Math.max(0, targetScroll),
             behavior: 'smooth'
         });
-
-        setTimeout(() => {
-            const containerRect = scrollContainer.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-
-            if (containerRect.top < 0 || containerRect.bottom > viewportHeight) {
-                const offset = containerRect.top - (viewportHeight / 2) + (containerRect.height / 2);
-                window.scrollBy({ top: offset, behavior: 'smooth' });
-            }
-        }, 50);
     }
 
     confirmQuantityEdit(cell, input, rowIndex, colIdx) {
@@ -834,7 +822,7 @@ class InventarioApp extends BaseUploader {
         }
 
         this.refocusBarcode();
-
+        
         if (this.lastHighlightedRow) {
             setTimeout(() => {
                 this.lastHighlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -856,7 +844,7 @@ class InventarioApp extends BaseUploader {
         }
 
         this.refocusBarcode();
-
+        
         if (this.lastHighlightedRow) {
             setTimeout(() => {
                 this.lastHighlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
