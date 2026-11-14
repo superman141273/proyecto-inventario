@@ -107,18 +107,21 @@ main { padding: 2rem; background: #f8fafc; }
 .clear-input-btn:hover { color: #6b21a8; }
 .search-input-container input { padding-right: 35px !important; }
 
-/* ⭐ AJUSTES CRÍTICOS PARA EL SCROLL EN SUGERENCIAS MÓVILES ⭐ */
+/* ⭐ AJUSTES CRÍTICOS PARA EL SCROLL EN SUGERENCIAS MÓVILES CON TECLADO ACTIVO ⭐ */
 .search-suggestions {
-    position: absolute; top: 100%; left: 0; right: 0;
+    position: absolute; 
+    top: 100%; left: 0; right: 0;
     background: #ffffff; border: 2px solid #d1bfae; border-top: none;
     border-radius: 0 0 4px 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     z-index: 1000; 
     max-height: 250px; 
-    overflow-y: scroll; /* Forzamos la barra para que el navegador sepa que hay scroll */
-    -webkit-overflow-scrolling: touch; /* Scroll con inercia en iOS */
-    overscroll-behavior: contain; /* Bloquea el scroll de la página al llegar al final */
+    /* Forzamos el scroll interno */
+    overflow-y: auto !important; 
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain; 
     display: none;
-    touch-action: pan-y; /* Permite arrastrar el dedo verticalmente */
+    /* Aseguramos que el navegador entienda que aquí se puede arrastrar verticalmente */
+    touch-action: pan-y !important; 
 }
 .search-suggestions.active { display: block; }
 .suggestion-item {
@@ -269,7 +272,6 @@ td.editable-quantity { background-color: #fef9c3 !important; padding: 4px !impor
 .row-actions button:hover { background: #6b21a8; }
 tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308; }
 
-/* ⭐ ESTILOS DEL PANEL DE DETALLES Y SU BOTÓN DE CERRAR ⭐ */
 .detalles-producto-container {
     margin-top: 1rem; padding: 1.25rem; background: #f4ece6; border: 2px solid #d1bfae;
     border-left: 5px solid #7e22ce; border-radius: 4px; display: none;
