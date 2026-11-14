@@ -40,6 +40,7 @@ class InventarioApp extends BaseUploader {
         
         this.dropText = document.getElementById('dropText');
         this.fileBtnLabel = document.getElementById('fileBtnLabel');
+        this.closeDetallesBtn = document.getElementById('closeDetallesBtn');
     }
 
     initEventListeners() {
@@ -141,6 +142,13 @@ class InventarioApp extends BaseUploader {
 
         document.getElementById('tabInventario').addEventListener('click', () => this.switchTab('viewInventario'));
         document.getElementById('tabCambios').addEventListener('click', () => this.switchTab('viewCambios'));
+
+        // ⭐ LISTENER PARA CERRAR EL PANEL DE DETALLES
+        if (this.closeDetallesBtn) {
+            this.closeDetallesBtn.addEventListener('click', () => {
+                document.getElementById('detallesProducto').classList.remove('visible');
+            });
+        }
     }
 
     initKeyboardDetector() {
@@ -287,7 +295,6 @@ class InventarioApp extends BaseUploader {
             textSpan.textContent = h;
             container.appendChild(textSpan);
 
-            // Filtro solo en la primera columna
             if (colIdx === 0) {
                 const filterIcon = document.createElement('span');
                 filterIcon.className = 'filter-icon';
@@ -826,11 +833,9 @@ class InventarioApp extends BaseUploader {
         const resultHeight = resultElement.offsetHeight;
         const containerHeight = scrollContainer.clientHeight;
 
-        // Intentamos centrar el bloque (fila + resultado) en el contenedor de scroll
         const blockHeight = rowElement.offsetHeight + resultHeight;
         let targetScroll = rowTop - 10;
 
-        // Si el bloque es más alto que el contenedor, lo alineamos arriba con margen
         if (blockHeight > containerHeight) {
             targetScroll = rowTop - 20;
         }

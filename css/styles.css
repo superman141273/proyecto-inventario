@@ -131,11 +131,6 @@ main { padding: 2rem; background: #f8fafc; }
 .table-container { overflow: visible; border: 2px solid #8c6e54; border-radius: 2px; background: #ffffff; }
 .table-scroll { max-height: 60vh; overflow: auto; border-radius: 2px; transition: max-height 0.3s ease; touch-action: pan-y pan-x; }
 
-/* 
-   ⭐ ELIMINADO EL body.keyboard-open QUE ENCOGÍA LA TABLA
-   Esto permite hacer scroll libremente incluso con el teclado abierto.
-*/
-
 table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; min-width: 100%; }
 
 th {
@@ -224,7 +219,7 @@ table, thead, tbody, tr, th, td, button, .table-scroll, .row-actions button {
     width: 100%; padding: 6px; border: 2px solid #7e22ce; border-radius: 4px;
     font-size: 1rem; font-weight: bold; color: #27272a; background: #ffffff;
     outline: none; text-align: center;
-    touch-action: pan-y; /* Permite el scroll vertical tocando el input */
+    touch-action: pan-y;
 }
 .qty-input:focus { box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.3); }
 td.editable-quantity { background-color: #fef9c3 !important; padding: 4px !important; }
@@ -267,12 +262,38 @@ td.editable-quantity { background-color: #fef9c3 !important; padding: 4px !impor
 .row-actions button:hover { background: #6b21a8; }
 tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308; }
 
+/* ⭐ ESTILOS DEL PANEL DE DETALLES Y SU BOTÓN DE CERRAR ⭐ */
 .detalles-producto-container {
     margin-top: 1rem; padding: 1.25rem; background: #f4ece6; border: 2px solid #d1bfae;
     border-left: 5px solid #7e22ce; border-radius: 4px; display: none;
 }
 .detalles-producto-container.visible { display: block; }
-.detalles-title { font-size: 0.95rem; margin-bottom: 0.75rem; color: #27272a; }
+
+/* Contenedor flexible para alinear el título y la X */
+.detalles-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.detalles-title { font-size: 0.95rem; margin: 0; color: #27272a; }
+
+/* Botón de cerrar (X) */
+.detalles-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #78716c;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+.detalles-close-btn:hover {
+    color: #dc2626;
+}
+
 .detalles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
 .detalles-item { background: #ffffff; padding: 0.5rem 0.75rem; border-radius: 2px; border: 1px solid #d1bfae; }
 .detalles-label { font-size: 0.75rem; color: #8c6e54; font-weight: 600; display: block; margin-bottom: 2px; }
@@ -324,7 +345,6 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
     .search-input-container { width: 100%; }
     .search-row input, .search-row > button { width: 100%; font-size: 16px; padding: 10px; }
     
-    /* Se eliminó el max-height reducido para que la tabla mantenga su tamaño */
     .table-scroll { max-height: 65vh; }
     
     .detalles-grid { grid-template-columns: 1fr; }
@@ -348,7 +368,7 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
         flex-direction: row;
         gap: 6px;
         justify-content: flex-end;
-        padding-bottom: 20px; /* Margen extra para que el teclado no tape los botones */
+        padding-bottom: 20px;
     }
 
     .edit-action-btn { padding: 8px 12px; font-size: 0.8rem; }
