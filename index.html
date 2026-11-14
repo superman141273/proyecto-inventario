@@ -17,8 +17,8 @@
             <!-- Zona de carga de archivos simplificada -->
             <div class="upload-container">
                 <div class="upload-area" id="dropZone">
-                    <h3><b>Selecciona o Arrastra tu archivo</b></h3>
-                    <label for="fileInput" class="file-btn">Seleccionar Archivo <em>(Formatos Compatibles: .xlsx, .xls, .csv)</em></label>
+                    <h3>Arrastra tu archivo de inventario aquí</h3>
+                    <label for="fileInput" class="file-btn">Seleccionar archivo (.xlsx, .xls, .csv)</label>
                     <input type="file" id="fileInput" accept=".xlsx,.csv,.xls" hidden>
                 </div>
 
@@ -117,8 +117,8 @@
         </main>
     </div>
 
-    <!-- Input oculto para el lector de código de barras -->
-    <input type="text" id="barcodeInput" class="barcode-input" autocomplete="off">
+    <!-- ⭐ Input oculto con inputmode="none" para que NO abra el teclado virtual en móviles -->
+    <input type="text" id="barcodeInput" class="barcode-input" autocomplete="off" inputmode="none">
 
     <!-- Librerías locales -->
     <script src="libs/xlsx.full.min.js"></script>
