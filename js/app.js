@@ -647,7 +647,6 @@ class InventarioApp extends BaseUploader {
                 cell.classList.add('editable-quantity');
                 cell.innerHTML = ''; 
                 
-                // ⭐ CAMBIO CLAVE: usar type="text" en vez de "number".
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.value = txt;
@@ -655,6 +654,31 @@ class InventarioApp extends BaseUploader {
                 input.setAttribute('inputmode', 'decimal'); 
                 input.setAttribute('pattern', '[0-9]*');
                 
+                // ⭐ DETECCIÓN DE ESCÁNER EN EL INPUT
+                let barcodeBuffer = '';
+                let barcodeTimeout = null;
+
+                input.addEventListener('input', (e) => {
+                    // Si el valor contiene muchas letras o cambió drásticamente, podría ser un escáner
+                    // Pero un escáner escribe muy rápido. Usamos un timer.
+                    barcodeBuffer += e.data || '';
+                    
+                    clearTimeout(barcodeTimeout);
+                    barcodeTimeout = setTimeout(() => {
+                        barcodeBuffer = ''; // Resetear si pasan 200ms sin escribir
+                    }, 200);
+
+                    if (barcodeBuffer.length >= 5) { // Si acumuló 5 caracteres en menos de 200ms, es escáner
+                        const scannedCode = barcodeBuffer;
+                        barcodeBuffer = '';
+                        input.value = txt; // Restaurar valor original
+                        // Ejecutar búsqueda
+                        setTimeout(() => {
+                            this.processBarcode(scannedCode);
+                        }, 50);
+                    }
+                });
+
                 input.onkeydown = (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -729,7 +753,6 @@ class InventarioApp extends BaseUploader {
         targetRow.parentNode.insertBefore(resultTr, targetRow.nextSibling);
         this.currentOpenResultRow = resultTr;
 
-        // ⭐ Foco inmediato
         if (qtyInputReference) {
             setTimeout(() => {
                 this.scrollToResultBlock(targetRow, resultTr);

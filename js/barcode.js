@@ -39,11 +39,6 @@ class BarcodeReader {
             }
         });
 
-        // ⭐ ELIMINADO EL LISTENER GLOBAL. 
-        // Si el foco está en el input de cantidad (.qty-input), 
-        // permitimos que el usuario escriba o que el lector escriba ahí.
-        // Si el usuario quiere escanear otro producto, primero debe presionar Enter o Confirmar.
-
         if (manualSearch) {
             manualSearch.addEventListener('focus', () => { this.isManualSearchActive = true; });
             manualSearch.addEventListener('blur', () => { this.isManualSearchActive = false; });
@@ -54,6 +49,14 @@ class BarcodeReader {
                 }
             });
         }
+
+        document.addEventListener('click', () => {
+            const active = document.activeElement;
+            if (active === manualSearch) return;
+            if (active && active.classList && active.classList.contains('qty-input')) return;
+            
+            this.refocus();
+        });
     }
 
     processBuffer() {
