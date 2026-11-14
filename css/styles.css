@@ -107,11 +107,16 @@ main { padding: 2rem; background: #f8fafc; }
 .clear-input-btn:hover { color: #6b21a8; }
 .search-input-container input { padding-right: 35px !important; }
 
+/* ⭐ CORRECCIÓN PARA PERMITIR SCROLL EN SUGERENCIAS ⭐ */
 .search-suggestions {
     position: absolute; top: 100%; left: 0; right: 0;
     background: #ffffff; border: 2px solid #d1bfae; border-top: none;
     border-radius: 0 0 4px 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    z-index: 1000; max-height: 250px; overflow-y: auto; display: none;
+    z-index: 1000; max-height: 250px; 
+    overflow-y: auto; 
+    overscroll-behavior: contain; /* Evita que el scroll de la página se mueva al llegar al final de la lista */
+    display: none;
+    touch-action: pan-y; /* Indica al navegador que permita el desplazamiento vertical táctil dentro de este div */
 }
 .search-suggestions.active { display: block; }
 .suggestion-item {
