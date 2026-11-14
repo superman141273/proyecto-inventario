@@ -21,12 +21,6 @@ class InventarioApp extends BaseUploader {
         this.crud = new CrudManager(this);
         
         this.initKeyboardDetector();
-
-        // ⭐ RETRASO DE SEGURIDAD: Esperamos 100ms para que el navegador 
-        // termine de dibujar la página antes de intentar recuperar los datos.
-        setTimeout(() => {
-            this.intentarRecuperarLocalStorage();
-        }, 100);
     }
 
     cacheDOM() {
@@ -848,7 +842,6 @@ class InventarioApp extends BaseUploader {
                 }
                 
                 this.registrarCambio(rowIndex, colIdx, valorAnterior, nuevoValor);
-                this.guardarEnLocalStorage();
                 this.showNotification('Cantidad actualizada', 'success');
             }
         }
@@ -1037,7 +1030,6 @@ class InventarioApp extends BaseUploader {
         }
         this.historialCambios.splice(index, 1);
         this.actualizarVistaCambios();
-        this.guardarEnLocalStorage();
         this.showNotification('Cambio deshecho correctamente', 'success');
     }
 
@@ -1085,45 +1077,8 @@ class InventarioApp extends BaseUploader {
         this.showNotification(`Descargado: ${fileName}`, 'success');
     }
 
-    guardarEnLocalStorage() {
-        try {
-            localStorage.setItem('inventario_actual', JSON.stringify({
-                data: this.currentData, headers: this.currentHeaders, sheet: this.currentSheet,
-                fileName: this.currentFileName, historial: this.historialCambios, timestamp: Date.now()
-            }));
-        } catch (e) { console.warn('No se pudo guardar en localStorage', e); }
-    }
-
-    intentarRecuperarLocalStorage() {
-        try {
-            const raw = localStorage.getItem('inventario_actual');
-            if (!raw) return;
-            const saved = JSON.parse(raw);
-            if (!saved.data || !saved.sheet) return;
-
-            const fecha = new Date(saved.timestamp).toLocaleString('es-MX');
-            if (confirm(`¿Recuperar el inventario sin guardar del ${fecha}?`)) {
-                this.currentData = saved.data;
-                this.currentHeaders = saved.headers;
-                this.currentSheet = saved.sheet;
-                this.currentFileName = saved.fileName;
-                if (saved.historial) this.historialCambios = saved.historial;
-                this.currentWorkbook = { SheetNames: Object.keys(this.currentData), Sheets: {} };
-                
-                this.displaySheetButtons(Object.keys(this.currentData));
-                this.displaySheet(this.currentSheet); 
-                this.actualizarVistaCambios();
-                this.contentContainer.style.display = 'block';
-                this.updateScanStatus('success', 'Inventario recuperado');
-                this.showNotification('Inventario recuperado', 'success');
-                this.switchTab('viewInventario');
-            } else { localStorage.removeItem('inventario_actual'); }
-        } catch (e) { console.warn('Error recuperando localStorage', e); }
-    }
-
     resetApp() {
         if (!confirm('¿Cerrar el inventario actual? Los cambios no exportados se perderán.')) return;
-        localStorage.removeItem('inventario_actual');
         this.currentData = {}; this.currentHeaders = {}; this.currentFileName = '';
         this.currentWorkbook = null; this.currentSheet = ''; this.lastHighlightedRow = null;
         this.historialCambios = []; this.columnFilters = {}; this.activeSearchTerm = '';
