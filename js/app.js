@@ -37,6 +37,7 @@ class InventarioApp extends BaseUploader {
         this.tableBody = document.getElementById('tableBody');
         this.manualSearchInput = document.getElementById('manualSearch');
         this.searchSuggestions = document.getElementById('searchSuggestions');
+        this.clearSearchInputBtn = document.getElementById('clearSearchInputBtn'); // ⭐ Nuevo botón X
         
         this.exportButton = document.getElementById('exportButton');
         this.exportXLSXButton = document.getElementById('exportXLSXButton');
@@ -65,12 +66,28 @@ class InventarioApp extends BaseUploader {
         
         this.manualSearchInput.addEventListener('input', () => {
             this.activeSearchTerm = this.manualSearchInput.value.trim();
+            
+            // ⭐ Mostrar u ocultar la "X" dependiendo de si hay texto
+            if (this.activeSearchTerm.length > 0) {
+                this.clearSearchInputBtn.style.display = 'flex';
+            } else {
+                this.clearSearchInputBtn.style.display = 'none';
+            }
+
             if (this.activeSearchTerm.length >= 2) {
                 this.updateSuggestions(this.activeSearchTerm);
             } else {
                 this.searchSuggestions.classList.remove('active');
                 if (this.activeSearchTerm.length === 0) this.clearSearch();
             }
+        });
+
+        // ⭐ Acción del botón X
+        this.clearSearchInputBtn.addEventListener('click', () => {
+            this.manualSearchInput.value = '';
+            this.clearSearchInputBtn.style.display = 'none';
+            this.clearSearch();
+            this.manualSearchInput.focus(); // Mantiene el cursor en la barra para escribir de nuevo
         });
 
         document.addEventListener('click', (e) => {
@@ -480,6 +497,7 @@ class InventarioApp extends BaseUploader {
             item.onclick = () => {
                 this.manualSearchInput.value = m.val;
                 this.activeSearchTerm = m.val;
+                this.clearSearchInputBtn.style.display = 'flex'; // Mostrar la X al autocompletar
                 this.searchSuggestions.classList.remove('active');
                 this.manualSearch();
             };
@@ -513,6 +531,7 @@ class InventarioApp extends BaseUploader {
 
         this.activeSearchTerm = code;
         this.manualSearchInput.value = code;
+        this.clearSearchInputBtn.style.display = 'flex'; // Mostrar la X al escanear
         this.searchSuggestions.classList.remove('active');
         
         const found = this.searchInData(code);
@@ -842,7 +861,6 @@ class InventarioApp extends BaseUploader {
         this.refocusBarcode();
     }
 
-    // ⭐ CANCELAR: MANTIENE EL RESALTADO
     cancelQuantityEdit(cell, originalValue) {
         cell.innerHTML = originalValue;
         this.showNotification('Edición cancelada', 'warning');
@@ -851,8 +869,6 @@ class InventarioApp extends BaseUploader {
             this.currentOpenResultRow.remove();
             this.currentOpenResultRow = null;
         }
-
-        // Se eliminó el bloque que quitaba la clase 'highlighted' para que la fila siga iluminada
 
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
@@ -864,6 +880,7 @@ class InventarioApp extends BaseUploader {
     clearSearch() {
         this.activeSearchTerm = '';
         this.manualSearchInput.value = '';
+        this.clearSearchInputBtn.style.display = 'none'; // Ocultar la X
         this.searchSuggestions.classList.remove('active');
         if (this.lastHighlightedRow) {
             this.lastHighlightedRow.classList.remove('highlighted');
@@ -1104,6 +1121,7 @@ class InventarioApp extends BaseUploader {
         this.sheetsContainer.style.display = 'none';
         this.contentContainer.style.display = 'none';
         this.manualSearchInput.value = '';
+        this.clearSearchInputBtn.style.display = 'none';
         this.searchSuggestions.classList.remove('active');
         this.fileInput.value = '';
         this.updateScanStatus('success', 'Esperando archivo...');

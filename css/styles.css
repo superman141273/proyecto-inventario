@@ -480,3 +480,35 @@ tr.highlighted { background: #fef9c3 !important; border: 1px solid #eab308; }
     .file-btn { width: 100%; text-align: center; }
     th, td { padding: 6px 8px; font-size: 0.75rem; min-width: 80px; }
 }
+
+/* ============================================
+   BOTÓN PARA LIMPIAR LA BÚSQUEDA (X)
+   ============================================ */
+.clear-input-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e7e5e4;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #57534e;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+.clear-input-btn:hover {
+    background: #d6d3d1;
+    color: #1c1917;
+}
+
+/* Ajuste para que el texto no choque con la "X" cuando está visible */
+.search-input-container input {
+    padding-right: 32px !important;
+}
