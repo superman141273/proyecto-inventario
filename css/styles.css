@@ -15,7 +15,7 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     background: #f8fafc; 
-    border-radius: 4px; /* ⭐ Redondeo reducido */
+    border-radius: 4px; 
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); 
     border: 2px solid #8c6e54; 
     overflow: hidden;
@@ -114,7 +114,6 @@ main { padding: 2rem; background: #f8fafc; }
 }
 .search-input-container input:focus { border-color: #7e22ce; background: #ffffff; box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.15); }
 
-/* BOTÓN PARA LIMPIAR LA BÚSQUEDA */
 .clear-input-btn {
     position: absolute;
     right: 10px;
@@ -126,13 +125,9 @@ main { padding: 2rem; background: #f8fafc; }
     user-select: none;
     line-height: 1;
 }
-.clear-input-btn:hover {
-    color: #6b21a8; 
-}
+.clear-input-btn:hover { color: #6b21a8; }
 
-.search-input-container input {
-    padding-right: 35px !important;
-}
+.search-input-container input { padding-right: 35px !important; }
 
 .search-suggestions {
     position: absolute; top: 100%; left: 0; right: 0;
@@ -161,7 +156,7 @@ main { padding: 2rem; background: #f8fafc; }
 .table-container { 
     overflow: visible; 
     border: 2px solid #8c6e54; 
-    border-radius: 2px; /* ⭐ Redondeo mínimo en la tabla */
+    border-radius: 2px; 
     background: #ffffff; 
 }
 
@@ -172,9 +167,7 @@ main { padding: 2rem; background: #f8fafc; }
     transition: max-height 0.3s ease;
 }
 
-body.keyboard-open .table-scroll {
-    max-height: 30vh;
-}
+body.keyboard-open .table-scroll { max-height: 30vh; }
 
 table { 
     width: 100%; 
@@ -212,9 +205,7 @@ td {
 td:last-child { border-right: none; }
 tr:hover td { background-color: #f4ece6; }
 
-.th-filter-container {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-}
+.th-filter-container { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .filter-icon {
     cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 2px;
     background: rgba(255, 255, 255, 0.1); transition: background 0.2s; user-select: none;
@@ -230,18 +221,11 @@ tr:hover td { background-color: #f4ece6; }
     box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 10px; z-index: 9999;
     min-width: 240px; color: #3f3f46; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;
 }
-.filter-option {
-    display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px; border-radius: 2px; transition: background 0.2s;
-}
+.filter-option { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px; border-radius: 2px; transition: background 0.2s; }
 .filter-option:hover { background: #f4ece6; }
 .filter-list {
     max-height: 200px; overflow-y: auto; border-top: 1px solid #eadcd2; border-bottom: 1px solid #eadcd2; padding: 4px 0; margin: 4px 0;
 }
-.filter-list::-webkit-scrollbar { width: 8px; }
-.filter-list::-webkit-scrollbar-track { background: #f4ece6; }
-.filter-list::-webkit-scrollbar-thumb { background: #b89c85; border-radius: 2px; }
-.filter-list::-webkit-scrollbar-thumb:hover { background: #8c6e54; }
-
 .filter-actions { display: flex; justify-content: space-between; margin-top: 4px; gap: 8px; }
 .filter-btn-sm { border: none; padding: 6px 12px; border-radius: 2px; cursor: pointer; font-size: 0.75rem; font-weight: 600; transition: all 0.2s; flex: 1; }
 .filter-btn-clear { background: #f4ece6; color: #6b5a4d; border: 1px solid #d1bfae; }
@@ -258,163 +242,68 @@ tr:hover td { background-color: #f4ece6; }
     border-bottom: 2px solid #7e22ce !important;
 }
 
-.inline-result-container {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+.inline-result-container { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
 
 .inline-result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-    color: #4a3b32;
-    font-size: 0.9rem;
-    border-bottom: 2px solid #d1bfae;
-    padding-bottom: 5px;
+    display: flex; justify-content: space-between; align-items: center; font-weight: bold;
+    color: #4a3b32; font-size: 0.9rem; border-bottom: 2px solid #d1bfae; padding-bottom: 5px;
 }
 
 .inline-result-container .result-table {
-    width: 100%; 
-    border-collapse: separate; 
-    border-spacing: 0;
-    font-size: 0.85rem; 
-    background: #ffffff; 
-    border: 2px solid #8c6e54; 
-    border-radius: 2px; 
-    overflow: visible; 
-    margin: 0;
+    width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; 
+    background: #ffffff; border: 2px solid #8c6e54; border-radius: 2px; overflow: visible; margin: 0;
 }
 
 .inline-result-container .result-table th {
-    background: #f4ece6; 
-    color: #5c4a3d; 
-    padding: 10px 12px; 
-    text-align: left; 
-    font-weight: 600; 
-    border-bottom: 2px solid #8c6e54; 
-    border-right: 1px solid #d1bfae; 
-    position: static;
+    background: #f4ece6; color: #5c4a3d; padding: 10px 12px; text-align: left; font-weight: 600; 
+    border-bottom: 2px solid #8c6e54; border-right: 1px solid #d1bfae; position: static;
 }
 
 .inline-result-container .result-table td {
-    padding: 10px 12px; 
-    border-bottom: 1px solid #d1bfae; 
-    border-right: 1px solid #eadcd2; 
-    color: #3f3f46; 
-    vertical-align: middle; 
-    position: relative; 
-    min-width: 80px; 
-    cursor: pointer; 
-    user-select: none;
+    padding: 10px 12px; border-bottom: 1px solid #d1bfae; border-right: 1px solid #eadcd2; 
+    color: #3f3f46; vertical-align: middle; position: relative; min-width: 80px; 
+    cursor: pointer; user-select: none;
 }
 
 td.editable-quantity {
-    background-color: #fef9c3 !important; 
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
+    background-color: #fef9c3 !important; cursor: pointer; font-weight: bold; transition: background-color 0.2s;
 }
+td.editable-quantity:hover { background-color: #fde047 !important; }
 
-td.editable-quantity:hover {
-    background-color: #fde047 !important;
-}
-
-.inline-result-container .result-table td:not(.editable-quantity) {
-    cursor: default;
-}
+.inline-result-container .result-table td:not(.editable-quantity) { cursor: default; }
 
 .qty-input {
-    width: 100%;
-    padding: 8px;
-    border: 2px solid #7e22ce;
-    border-radius: 2px;
-    font-size: 1rem;
-    font-weight: bold;
-    color: #27272a;
-    background: #ffffff;
-    outline: none;
-    box-sizing: border-box;
-    -moz-appearance: textfield;
-    appearance: textfield;
-}
-
-.qty-input::-webkit-outer-spin-button,
-.qty-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+    width: 100%; padding: 8px; border: 2px solid #7e22ce; border-radius: 2px;
+    font-size: 1rem; font-weight: bold; color: #27272a; background: #ffffff;
+    outline: none; box-sizing: border-box; -moz-appearance: textfield; appearance: textfield;
 }
 
 /* ============================================
    BOTONES CANCELAR / CONFIRMAR OPTIMIZADOS
    ============================================ */
-.edit-actions-row {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-}
+.edit-actions-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px; }
 
 .edit-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 16px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-    user-select: none;
-    line-height: 1;
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px;
+    border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    border: 2px solid transparent; transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    user-select: none; line-height: 1;
 }
-
-.edit-action-btn:active {
-    transform: scale(0.97);
-}
-
-.edit-action-cancel {
-    background: #ffffff;
-    color: #6b5a4d; 
-    border-color: #d1bfae;
-}
-
-.edit-action-cancel:hover {
-    background: #f4ece6;
-    border-color: #8c6e54;
-}
-
-.edit-action-confirm {
-    background: #7e22ce; 
-    color: #ffffff;
-    border-color: #6b21a8;
-}
-
-.edit-action-confirm:hover {
-    background: #6b21a8;
-    border-color: #581c87;
-}
+.edit-action-btn:active { transform: scale(0.97); }
+.edit-action-cancel { background: #ffffff; color: #6b5a4d; border-color: #d1bfae; }
+.edit-action-cancel:hover { background: #f4ece6; border-color: #8c6e54; }
+.edit-action-confirm { background: #7e22ce; color: #ffffff; border-color: #6b21a8; }
+.edit-action-confirm:hover { background: #6b21a8; border-color: #581c87; }
 
 /* ============================================
    BOTONES FINALES
    ============================================ */
-.table-controls-container {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
+.table-controls-container { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 10px; }
 .table-controls { display: flex; gap: 0.5rem; justify-content: flex-start; flex-wrap: wrap; }
 .control-btn { padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; border: 1px solid transparent; }
 
 #exportButton, #exportXLSXButton { background: #7e22ce; color: white; border-color: #6b21a8; }
 #exportButton:hover, #exportXLSXButton:hover { background: #6b21a8; }
-
 #scrollTopButton { background: #eadcd2; color: #5c4a3d; border-color: #d1bfae; }
 #scrollTopButton:hover { background: #d1bfae; }
 #resetButton { background: #4a3b32; color: white; border-color: #2e241e; }
@@ -468,29 +357,55 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
 .notification-error { background: #6b5a4d; } 
 .notification-warning { background: #ca8a04; }
 
+/* ============================================
+   ⭐ OPTIMIZACIÓN MÓVIL (Ajustes específicos para pantallas pequeñas)
+   ============================================ */
 @media (max-width: 768px) {
     body { padding: 10px; }
     header { padding: 1rem; }
     header h1 { font-size: 1.25rem; }
     main { padding: 1rem; }
+    
     .content-container { padding: 1rem; margin: 1rem -1rem; border-radius: 0; border-left: 0; border-right: 0; border-top: 2px solid #d1bfae; border-bottom: 2px solid #d1bfae; }
+    
     .tabs { flex-direction: column; border-bottom: none; gap: 5px; }
     .tab-btn { border-radius: 4px; border: 1px solid #eadcd2; text-align: left; justify-content: center; }
     .tab-btn.active { background: #f3e8ff; border-color: #7e22ce; }
-    th, td { padding: 8px 10px; font-size: 0.8rem; }
-    .result-table th, .result-table td { padding: 8px; font-size: 0.8rem; }
+    
+    /* ⭐ TABLA OPTIMIZADA PARA MÓVIL */
+    th, td { 
+        padding: 6px 8px; /* Menos espacio interno para que quepan más filas */
+        font-size: 0.75rem; /* Texto un poco más pequeño */
+        min-width: 80px; /* Evita que las columnas colapsen demasiado */
+        max-width: 150px; /* Evita que una descripción larga estire la tabla al infinito */
+        white-space: normal; /* Permite que el texto baje a la siguiente línea */
+    }
+    
+    /* Botón de seleccionar más pequeño */
+    .row-actions button {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Tabla de resultados (la que se abre al buscar) */
+    .result-table th, .result-table td { padding: 6px; font-size: 0.75rem; }
+    
     .table-controls { flex-direction: column; align-items: stretch; }
     .control-btn { width: 100%; text-align: center; }
+    
     .sheets-buttons { flex-direction: column; }
     .sheet-btn { width: 100%; }
+    
     .search-row { flex-direction: column; align-items: stretch; }
     .search-input-container { width: 100%; }
     .search-row input, .search-row > button { width: 100%; font-size: 16px; padding: 10px; }
-    .table-scroll { max-height: 50vh; }
+    
+    .table-scroll { max-height: 55vh; } /* Damos un poquito más de espacio vertical */
     body.keyboard-open .table-scroll { max-height: 25vh; }
+    
     .detalles-grid { grid-template-columns: 1fr; }
     .edit-actions-row { gap: 6px; }
-    .edit-action-btn { padding: 8px 14px; font-size: 0.8rem; }
+    .edit-action-btn { padding: 8px 12px; font-size: 0.75rem; }
 }
 
 @media (max-width: 480px) {
@@ -499,5 +414,4 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
     header h1 { font-size: 1.1rem; }
     .upload-area { padding: 1.5rem 1rem; }
     .file-btn { width: 100%; text-align: center; }
-    th, td { padding: 6px 8px; font-size: 0.75rem; min-width: 80px; }
 }
