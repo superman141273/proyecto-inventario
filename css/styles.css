@@ -107,16 +107,18 @@ main { padding: 2rem; background: #f8fafc; }
 .clear-input-btn:hover { color: #6b21a8; }
 .search-input-container input { padding-right: 35px !important; }
 
-/* ⭐ CORRECCIÓN PARA PERMITIR SCROLL EN SUGERENCIAS ⭐ */
+/* ⭐ AJUSTES CRÍTICOS PARA EL SCROLL EN SUGERENCIAS MÓVILES ⭐ */
 .search-suggestions {
     position: absolute; top: 100%; left: 0; right: 0;
     background: #ffffff; border: 2px solid #d1bfae; border-top: none;
     border-radius: 0 0 4px 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    z-index: 1000; max-height: 250px; 
-    overflow-y: auto; 
-    overscroll-behavior: contain; /* Evita que el scroll de la página se mueva al llegar al final de la lista */
+    z-index: 1000; 
+    max-height: 250px; 
+    overflow-y: scroll; /* Forzamos la barra para que el navegador sepa que hay scroll */
+    -webkit-overflow-scrolling: touch; /* Scroll con inercia en iOS */
+    overscroll-behavior: contain; /* Bloquea el scroll de la página al llegar al final */
     display: none;
-    touch-action: pan-y; /* Indica al navegador que permita el desplazamiento vertical táctil dentro de este div */
+    touch-action: pan-y; /* Permite arrastrar el dedo verticalmente */
 }
 .search-suggestions.active { display: block; }
 .suggestion-item {
@@ -274,7 +276,6 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
 }
 .detalles-producto-container.visible { display: block; }
 
-/* Contenedor flexible para alinear el título y la X */
 .detalles-header-flex {
     display: flex;
     justify-content: space-between;
@@ -284,7 +285,6 @@ tr.highlighted { background: #fef9c3 !important; border-left: 4px solid #eab308;
 
 .detalles-title { font-size: 0.95rem; margin: 0; color: #27272a; }
 
-/* Botón de cerrar (X) */
 .detalles-close-btn {
     background: transparent;
     border: none;
